@@ -244,7 +244,12 @@ export default function VenueDetailScreen() {
               {profile.website && (
                 <Pressable
                   style={styles.contactRow}
-                  onPress={() => Linking.openURL(profile.website!)}
+                  onPress={() => {
+                    const url = profile.website!;
+                    if (url.startsWith('http://') || url.startsWith('https://')) {
+                      Linking.openURL(url);
+                    }
+                  }}
                 >
                   <Ionicons name="globe-outline" size={20} color={Colors.light.secondary} />
                   <Text style={styles.contactText}>{profile.website}</Text>

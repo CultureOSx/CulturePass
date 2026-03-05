@@ -42,7 +42,7 @@ import SectionHeader from '@/components/Discover/SectionHeader';
 import SpotlightCard, { SpotlightItem } from '@/components/Discover/SpotlightCard';
 import WebRailSection from '@/components/Discover/WebRailSection';
 import WebHeroCarousel from '@/components/Discover/WebHeroCarousel';
-import { calculateDistance, getPostcodesByPlace } from '@shared/location/australian-postcodes';
+import { calculateDistance, getPostcodesByPlace } from '@/shared/location/australian-postcodes';
 import { useCouncil } from '@/hooks/useCouncil';
 import { useLayout } from '@/hooks/useLayout';
 

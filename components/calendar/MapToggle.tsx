@@ -1,23 +1,36 @@
-import { View, Text, Switch, StyleSheet } from "react-native"
+import { View, Text, Switch, StyleSheet } from 'react-native';
+import { useColors } from '@/hooks/useColors';
 
-export default function MapToggle({ showMap, onToggle }) {
+interface MapToggleProps {
+  showMap: boolean;
+  onToggle: (value: boolean) => void;
+}
+
+export default function MapToggle({ showMap, onToggle }: MapToggleProps) {
+  const colors = useColors();
   return (
     <View style={styles.row}>
-      <Text style={styles.label}>Map View</Text>
-      <Switch value={showMap} onValueChange={onToggle} />
+      <Text style={[styles.label, { color: colors.text }]}>Map View</Text>
+      <Switch
+        value={showMap}
+        onValueChange={onToggle}
+        accessibilityRole="switch"
+        accessibilityLabel="Toggle map view"
+        accessibilityState={{ checked: showMap }}
+      />
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 12,
+    gap: 10,
   },
   label: {
     fontSize: 15,
-    marginRight: 10,
-    color: "#222",
+    fontFamily: 'Poppins_500Medium',
   },
-})
+});

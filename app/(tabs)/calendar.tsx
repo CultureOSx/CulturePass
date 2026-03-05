@@ -56,7 +56,7 @@ export default function CalendarScreen() {
   const { width } = useWindowDimensions();
   const { isDesktop, isTablet } = useLayout();
   const isDesktopWeb = Platform.OS === 'web' && isDesktop;
-  const webTopInset = Platform.OS === 'web' ? (isDesktopWeb ? 72 : 0) : insets.top;
+  const webTopInset = Platform.OS === 'web' ? 0 : insets.top;
   const contentMaxWidth = Platform.OS === 'web'
     ? (isDesktopWeb ? 1280 : isTablet ? 1040 : width)
     : width;
@@ -107,17 +107,17 @@ export default function CalendarScreen() {
     enabled: !!userId,
   })
 
-  // Merge council events into allEvents
+  // Merge council events into allEvents (deduplicate by id)
   const allEvents = useMemo(() => {
-    const ids = new Set()
-    const merged = [...allEventsRaw]
-    councilEvents.forEach((ev: any) => {
+    const ids = new Set<string>(allEventsRaw.map((e) => e.id));
+    const merged = [...allEventsRaw];
+    councilEvents.forEach((ev: EventData) => {
       if (!ids.has(ev.id)) {
-        merged.push(ev)
-        ids.add(ev.id)
+        merged.push(ev);
+        ids.add(ev.id);
       }
-    })
-    return merged
+    });
+    return merged;
   }, [allEventsRaw, councilEvents])
 
   // Tab filtering

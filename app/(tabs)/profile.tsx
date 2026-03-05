@@ -27,11 +27,11 @@ import { api, type RewardsSummary } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useRole } from '@/hooks/useRole';
 import { useColors } from '@/hooks/useColors';
-import type { User, Wallet, Membership, EventData } from '@shared/schema';
+import type { User, Wallet, Membership, EventData } from '@/shared/schema';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GuestProfileView } from '@/components/profile/GuestProfileView';
 import { MenuItem } from '@/components/profile/MenuItem';
-import { LayoutRules, Spacing, gradients } from '@/constants/theme';
+import { Spacing, gradients } from '@/constants/theme';
 
 interface CommunityListItem {
   id: string;

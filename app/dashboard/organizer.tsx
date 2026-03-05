@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/query-client';
 import { useAuth } from '@/lib/auth';
@@ -272,13 +272,13 @@ function OrganizerDashboardContent() {
     );
   }
 
-  const sortedEvents = [...events].sort((a, b) => {
+  const sortedEvents = useMemo(() => [...events].sort((a, b) => {
     // Draft first, then published, then deleted
     const order = { draft: 0, published: 1, deleted: 2 };
     const sa = (a as EventData & { status?: string }).status ?? 'published';
     const sb = (b as EventData & { status?: string }).status ?? 'published';
     return (order[sa as keyof typeof order] ?? 1) - (order[sb as keyof typeof order] ?? 1);
-  });
+  }), [events]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

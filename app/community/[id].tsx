@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   StyleSheet, Text, View, ScrollView, Pressable, Platform, Image, ActivityIndicator,
 } from 'react-native';
@@ -13,7 +13,7 @@ import { useSaved } from '@/contexts/SavedContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getQueryFn } from '@/lib/query-client';
 import { api } from '@/lib/api';
-import { Community, EventData } from '@shared/schema';
+import { Community, EventData } from '@/shared/schema';
 import { confirmAndReport } from '@/lib/reporting';
 
 function formatNumber(num: number): string {
@@ -123,12 +123,16 @@ function DbCommunityView({ community, topInset, bottomInset, colors }: DbViewPro
     },
   });
 
-  const relatedTags   = getRelatedTagsForDb(community);
-  const relatedEvents = allEvents.filter((e: EventData) =>
-    relatedTags.some((tag: string) => {
-      const ct = (e.communityTag || '').toLowerCase();
-      return ct.includes(tag) || tag.includes(ct);
-    })
+  const relatedTags = useMemo(() => getRelatedTagsForDb(community), [community]);
+  const relatedEvents = useMemo(
+    () =>
+      allEvents.filter((e: EventData) =>
+        relatedTags.some((tag: string) => {
+          const ct = (e.communityTag || '').toLowerCase();
+          return ct.includes(tag) || tag.includes(ct);
+        })
+      ),
+    [allEvents, relatedTags]
   );
 
   return (

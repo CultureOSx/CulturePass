@@ -65,7 +65,7 @@ export default function BrowsePage({
   refreshControl,
 }: BrowsePageProps) {
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === 'web' ? 67 : insets.top;
+  const topInset = Platform.OS === 'web' ? 0 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
   const [selectedCat, setSelectedCat] = useState('All');
 

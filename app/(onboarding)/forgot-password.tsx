@@ -16,7 +16,7 @@ export default function ForgotPasswordScreen() {
   const [sent,  setSent]  = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const isValid = email.includes('@') && email.includes('.');
+  const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
   const handleSubmit = async () => {
     if (!isValid) return;
@@ -108,7 +108,7 @@ export default function ForgotPasswordScreen() {
                 <Text style={[s.submitText, { color: colors.textInverse }]}>Back to Sign In</Text>
               </Pressable>
 
-              <Pressable style={s.backRow} onPress={() => Alert.alert('Email Resent', 'A new reset link has been sent to your email.')}>
+              <Pressable style={s.backRow} onPress={handleSubmit} disabled={loading}>
                 <Text style={[s.backText, { color: colors.textSecondary }]}>
                   Didn&apos;t receive it?{' '}
                   <Text style={{ color: colors.primary, fontFamily: 'Poppins_600SemiBold' }}>Resend</Text>

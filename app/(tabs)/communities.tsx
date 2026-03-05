@@ -13,7 +13,7 @@ import * as Haptics from 'expo-haptics';
 import { useQuery } from '@tanstack/react-query';
 import { queryClient } from '@/lib/query-client';
 import { useState, useMemo, useCallback } from 'react';
-import type { Profile } from '@shared/schema';
+import type { Profile } from '@/shared/schema';
 import { FilterChipRow } from '@/components/FilterChip';
 import { EntityTypeColors } from '@/constants/theme';
 import { useCouncil } from '@/hooks/useCouncil';
