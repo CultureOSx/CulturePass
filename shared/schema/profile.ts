@@ -9,6 +9,7 @@ export interface Profile {
   entityType: string;
   description?: string;
   imageUrl?: string;
+  posterUrl?: string;
   coverImageUrl?: string;
   avatarUrl?: string;
   images?: string[];

@@ -739,7 +739,7 @@ export function EventDetail({
           <View style={styles.capacityDetails}>
             <Text style={styles.capacityText}>{event.attending} attending</Text>
             <Text style={styles.capacityText}>
-              {Math.max(0, event.capacity - event.attending)} spots left
+              {Math.max(0, (event.capacity ?? 0) - (event.attending ?? 0))} spots left
             </Text>
           </View>
         </View>
@@ -825,7 +825,7 @@ export function EventDetail({
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tickets</Text>
-          {event.tiers.map((tier: any, idx: number) => (
+          {(event.tiers ?? []).map((tier: any, idx: number) => (
             <Pressable
               key={`${tier.name}-${idx}`}
               style={styles.tierCard}
@@ -871,7 +871,7 @@ export function EventDetail({
                 { color: Colors.secondary, fontFamily: "Poppins_600SemiBold" },
               ]}
             >
-              CPID: {event.cpid}
+              CPID: {(event as any).cpid ?? ''}
             </Text>
           </View>
           <View style={styles.detailRow}>
@@ -1084,7 +1084,7 @@ export function EventDetail({
                 >
                   <Image
                     source={{ uri: re.imageUrl }}
-                    style={styles.relatedSwatch}
+                    style={styles.relatedSwatch as import('react-native').ImageStyle}
                   />
                   <View style={styles.relatedInfo}>
                     <Text style={styles.relatedTitle} numberOfLines={1}>
@@ -1248,7 +1248,7 @@ export function EventDetail({
               <Text style={[modalStyles.sectionLabel, { marginTop: 20 }]}>
                 Ticket Tier
               </Text>
-              {event.tiers.map((tier: any, idx: number) => {
+              {(event.tiers ?? []).map((tier: any, idx: number) => {
                 const isSelected = idx === selectedTierIndex;
                 return (
                   <Pressable
