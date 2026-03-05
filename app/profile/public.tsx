@@ -18,14 +18,11 @@ import type { User, Membership } from '@shared/schema';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useColors } from '@/hooks/useColors';
 import { api } from '@/lib/api';
-import { CP } from './constants';
-
 import {
   CP,
   ACCENT_COLORS,
   SOCIAL_ICONS,
   TIER_CONFIG,
-
   formatMemberDate,
   getInitials,
 } from './constants';
