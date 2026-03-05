@@ -23,7 +23,7 @@ import UserProfileAbout from '@/components/user/UserProfileAbout';
 import UserProfileSocial from '@/components/user/UserProfileSocial';
 import UserProfileDetails from '@/components/user/UserProfileDetails';
 import UserProfileIdentity from '@/components/user/UserProfileIdentity';
-import { SOCIAL_ICONS, TIER_CONFIG, formatMemberDate, getInitials, CP } from '@/components/user/profileUtils';
+import { SOCIAL_ICONS, TIER_CONFIG, formatMemberDate, getInitials } from '@/components/user/profileUtils';
 import { CultureTokens } from '@/constants/theme';
 
 export default function UserProfileScreen() {
@@ -143,8 +143,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: CultureTokens.background },
   centered:  { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-  errorText:        { fontSize: 16, fontFamily: 'Poppins_500Medium', color: CP.muted },
-  goBackButton:     { marginTop: 16, paddingHorizontal: 24, paddingVertical: 11, borderRadius: 14, backgroundColor: CP.purple },
+  errorText:        { fontSize: 16, fontFamily: 'Poppins_500Medium', color: '#94A3B8' },
+  goBackButton:     { marginTop: 16, paddingHorizontal: 24, paddingVertical: 11, borderRadius: 14, backgroundColor: '#7C3AED' },
   goBackButtonText: { fontSize: 15, fontFamily: 'Poppins_600SemiBold', color: '#FFF' },
 
   hero: { paddingBottom: 30, overflow: 'hidden' },
