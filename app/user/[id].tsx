@@ -23,7 +23,7 @@ import UserProfileAbout from '@/components/user/UserProfileAbout';
 import UserProfileSocial from '@/components/user/UserProfileSocial';
 import UserProfileDetails from '@/components/user/UserProfileDetails';
 import UserProfileIdentity from '@/components/user/UserProfileIdentity';
-import { SOCIAL_ICONS, TIER_CONFIG, formatMemberDate, getInitials } from '@/components/user/profileUtils';
+import { SOCIAL_ICONS, TIER_CONFIG, formatMemberDate, getInitials, CP } from '@/components/user/profileUtils';
 import { CultureTokens } from '@/constants/theme';
 
 export default function UserProfileScreen() {
