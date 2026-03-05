@@ -13,6 +13,28 @@ import { fetch } from 'expo/fetch';
 import { useAuth } from '@/lib/auth';
 import { useColors } from '@/hooks/useColors';
 
+const SOCIAL_PREFIXES = {
+  instagram: 'https://instagram.com/',
+  twitter:   'https://x.com/',
+  linkedin:  'https://linkedin.com/in/',
+} as const;
+
+/** Strip a known base URL to leave just the handle, handling common variants. */
+function extractHandle(url: string, field: keyof typeof SOCIAL_PREFIXES): string {
+  if (!url) return '';
+  const patterns: Record<keyof typeof SOCIAL_PREFIXES, RegExp[]> = {
+    instagram: [/instagram\.com\//i],
+    twitter:   [/x\.com\//i, /twitter\.com\//i],
+    linkedin:  [/linkedin\.com\/in\//i],
+  };
+  for (const re of patterns[field]) {
+    const match = url.match(new RegExp(re.source + '([^/?#]+)', 'i'));
+    if (match?.[1]) return match[1];
+  }
+  // If no URL pattern found, return as-is (already a raw handle)
+  return url.replace(/^@/, '');
+}
+
 interface UserData {
   id: string;
   username: string;
@@ -71,9 +93,9 @@ export default function EditProfileScreen() {
         postcode:    user.postcode != null ? String(user.postcode) : '',
         country:     user.country     || 'Australia',
         website:     user.website     || '',
-        instagram:   user.socialLinks?.instagram || '',
-        twitter:     user.socialLinks?.twitter   || '',
-        linkedin:    user.socialLinks?.linkedin   || '',
+        instagram:   extractHandle(user.socialLinks?.instagram || '', 'instagram'),
+        twitter:     extractHandle(user.socialLinks?.twitter   || '', 'twitter'),
+        linkedin:    extractHandle(user.socialLinks?.linkedin  || '', 'linkedin'),
       });
       setAvatarUri(user.avatarUrl || null);
     }
@@ -206,9 +228,9 @@ export default function EditProfileScreen() {
       avatarUrl,
       website: form.website.trim() || null,
       socialLinks: {
-        instagram: form.instagram.trim() || undefined,
-        twitter:   form.twitter.trim()   || undefined,
-        linkedin:  form.linkedin.trim()  || undefined,
+        instagram: form.instagram.trim() ? SOCIAL_PREFIXES.instagram + form.instagram.trim() : undefined,
+        twitter:   form.twitter.trim()   ? SOCIAL_PREFIXES.twitter   + form.twitter.trim()   : undefined,
+        linkedin:  form.linkedin.trim()  ? SOCIAL_PREFIXES.linkedin  + form.linkedin.trim()  : undefined,
       },
     });
   };
@@ -338,24 +360,42 @@ export default function EditProfileScreen() {
           <View style={s.formSection}>
             <Text style={[s.sectionLabel, { color: colors.text }]}>Social Links</Text>
 
-            {[
-              { icon: 'logo-instagram', color: '#E4405F', field: 'instagram' as const, placeholder: 'Instagram URL' },
-              { icon: 'logo-twitter',   color: '#1DA1F2', field: 'twitter'   as const, placeholder: 'Twitter URL'   },
-              { icon: 'logo-linkedin',  color: '#0A66C2', field: 'linkedin'  as const, placeholder: 'LinkedIn URL'  },
-              { icon: 'globe-outline',  color: colors.primary, field: 'website' as const, placeholder: 'Website URL' },
-            ].map(({ icon, color, field, placeholder }) => (
+            {([
+              { icon: 'logo-instagram', color: '#E4405F', field: 'instagram' as const, prefix: SOCIAL_PREFIXES.instagram, placeholder: 'yourhandle' },
+              { icon: 'logo-twitter',   color: '#1DA1F2', field: 'twitter'   as const, prefix: SOCIAL_PREFIXES.twitter,   placeholder: 'yourhandle' },
+              { icon: 'logo-linkedin',  color: '#0A66C2', field: 'linkedin'  as const, prefix: SOCIAL_PREFIXES.linkedin,  placeholder: 'yourhandle' },
+              { icon: 'globe-outline',  color: colors.primary, field: 'website' as const, prefix: '',                     placeholder: 'https://yourwebsite.com' },
+            ] as const).map(({ icon, color, field, prefix, placeholder }) => (
               <View key={field} style={s.socialRow}>
                 <View style={[s.socialIcon, { backgroundColor: color + '15' }]}>
                   <Ionicons name={icon as never} size={18} color={color} />
                 </View>
-                <TextInput
-                  style={[...inputStyle, { flex: 1 }]}
-                  value={form[field]}
-                  onChangeText={v => setForm(p => ({ ...p, [field]: v }))}
-                  placeholder={placeholder}
-                  placeholderTextColor={colors.textSecondary}
-                  autoCapitalize="none"
-                />
+                {prefix ? (
+                  <View style={[s.prefixWrap, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
+                    <Text style={[s.prefixText, { color: colors.textSecondary }]} numberOfLines={1}>{prefix}</Text>
+                    <TextInput
+                      style={[s.handleInput, { color: colors.text }]}
+                      value={form[field]}
+                      onChangeText={v => setForm(p => ({ ...p, [field]: v.replace(/^@+/, '') }))}
+                      placeholder={placeholder}
+                      placeholderTextColor={colors.textSecondary}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      keyboardType="url"
+                    />
+                  </View>
+                ) : (
+                  <TextInput
+                    style={[...inputStyle, { flex: 1 }]}
+                    value={form[field]}
+                    onChangeText={v => setForm(p => ({ ...p, [field]: v }))}
+                    placeholder={placeholder}
+                    placeholderTextColor={colors.textSecondary}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="url"
+                  />
+                )}
               </View>
             ))}
           </View>
@@ -393,4 +433,7 @@ const s = StyleSheet.create({
   halfField:        { flex: 1 },
   socialRow:        { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 },
   socialIcon:       { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  prefixWrap:       { flex: 1, flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, overflow: 'hidden' },
+  prefixText:       { paddingHorizontal: 10, fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  handleInput:      { flex: 1, paddingVertical: 14, paddingRight: 14, fontSize: 15, fontFamily: 'Poppins_400Regular' },
 });
