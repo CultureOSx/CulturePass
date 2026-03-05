@@ -110,8 +110,8 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 50,
   },
   heroPillAccent: {
-    backgroundColor: CP.teal + '16',
-    borderColor: CP.teal + '35',
+    backgroundColor: Colors.teal + '16',
+    borderColor: Colors.teal + '35',
   },
   heroPillText: {
     fontFamily: 'Poppins_500Medium',
@@ -132,7 +132,7 @@ export const styles = StyleSheet.create({
   },
   statItem:  { flex: 1, alignItems: 'center' },
   statNum:   { fontFamily: 'Poppins_700Bold', fontSize: 22, color: '#FFF', letterSpacing: -0.5 },
-  statLabel: { fontFamily: 'Poppins_400Regular', fontSize: 11, color: CP.muted, marginTop: 3, letterSpacing: 0.4 },
+  statLabel: { fontFamily: 'Poppins_400Regular', fontSize: 11, color: Colors.textTertiary, marginTop: 3, letterSpacing: 0.4 },
   statDivider: { width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.1)' },
 
   tierRow: {
@@ -150,13 +150,13 @@ export const styles = StyleSheet.create({
 
   section:       { paddingHorizontal: 20, marginTop: 32 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
-  sectionAccent: { width: 4, height: 22, borderRadius: 2, backgroundColor: CP.teal },
-  sectionTitle:  { fontFamily: 'Poppins_700Bold', fontSize: 18, color: CP.text, letterSpacing: -0.3 },
+  sectionAccent: { width: 4, height: 22, borderRadius: 2, backgroundColor: Colors.teal },
+  sectionTitle:  { fontFamily: 'Poppins_700Bold', fontSize: 18, color: Colors.text, letterSpacing: -0.3 },
 
   card: {
-    backgroundColor: CP.surface,
+    backgroundColor: Colors.surface,
     borderRadius: 20, padding: 20,
-    shadowColor: CP.dark,
+    shadowColor: Colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07, shadowRadius: 8, elevation: 3,
   },
@@ -168,9 +168,9 @@ export const styles = StyleSheet.create({
   socialGrid: { gap: 10 },
   socialCard: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
-    backgroundColor: CP.surface, borderRadius: 16, padding: 16,
+    backgroundColor: Colors.surface, borderRadius: 16, padding: 16,
     overflow: 'hidden',
-    shadowColor: CP.dark,
+    shadowColor: Colors.text,
     shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2,
   },
   socialStrip: {
@@ -181,18 +181,18 @@ export const styles = StyleSheet.create({
     width: 46, height: 46, borderRadius: 14,
     alignItems: 'center', justifyContent: 'center',
   },
-  socialLabel: { flex: 1, fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: CP.text },
+  socialLabel: { flex: 1, fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: Colors.text },
 
   detailRow:     { flexDirection: 'row', alignItems: 'center', gap: 14 },
   detailIconWrap:{ width: 46, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   detailText:    { flex: 1 },
-  detailLabel:   { fontFamily: 'Poppins_400Regular', fontSize: 11, color: CP.muted, letterSpacing: 0.4, marginBottom: 2 },
-  detailValue:   { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: CP.text },
-  detailDivider: { height: 1, backgroundColor: CP.bg, marginVertical: 16, marginLeft: 60 },
+  detailLabel:   { fontFamily: 'Poppins_400Regular', fontSize: 11, color: Colors.textTertiary, letterSpacing: 0.4, marginBottom: 2 },
+  detailValue:   { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: Colors.text },
+  detailDivider: { height: 1, backgroundColor: Colors.background, marginVertical: 16, marginLeft: 60 },
 
   cpidCard: {
     borderRadius: 24, padding: 24, overflow: 'hidden',
-    shadowColor: CP.purple,
+    shadowColor: CultureTokens.indigo,
     shadowOffset: { width: 0, height: 14 },
     shadowOpacity: 0.35, shadowRadius: 28, elevation: 14,
   },
@@ -215,19 +215,19 @@ export const styles = StyleSheet.create({
   cpidVerifiedIcon: {
     width: 32, height: 32, borderRadius: 16,
     backgroundColor: 'rgba(255,255,255,0.1)',
-    borderWidth: 1, borderColor: CP.teal + '40',
+    borderWidth: 1, borderColor: Colors.teal + '40',
     alignItems: 'center', justifyContent: 'center',
   },
 
   cpidCenter:    { alignItems: 'center', marginBottom: 26 },
-  cpidLabel:     { fontFamily: 'Poppins_500Medium', fontSize: 9, color: CP.muted, letterSpacing: 4, marginBottom: 8 },
+  cpidLabel:     { fontFamily: 'Poppins_500Medium', fontSize: 9, color: Colors.textTertiary, letterSpacing: 4, marginBottom: 8 },
   cpidValue:     { fontFamily: 'Poppins_700Bold', fontSize: 30, color: '#FFF', letterSpacing: 5 },
   cpidUnderline: { width: 160, height: 1.5, marginTop: 10, opacity: 0.65 },
 
   cpidMeta:      { flexDirection: 'row', marginBottom: 20, gap: 8 },
   cpidMetaItem:  { flex: 1 },
   cpidMetaLabel: {
-    fontFamily: 'Poppins_400Regular', fontSize: 9, color: CP.muted,
+    fontFamily: 'Poppins_400Regular', fontSize: 9, color: Colors.textTertiary,
     textTransform: 'uppercase' as const, letterSpacing: 1.2, marginBottom: 4,
   },
   cpidMetaValue: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: '#FFF' },
@@ -237,18 +237,18 @@ export const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', paddingTop: 14,
   },
   cpidFooterText: {
-    fontFamily: 'Poppins_500Medium', fontSize: 11, color: CP.muted, letterSpacing: 0.3,
+    fontFamily: 'Poppins_500Medium', fontSize: 11, color: Colors.textTertiary, letterSpacing: 0.3,
   },
 
   viewQrBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
-    backgroundColor: CP.surface, borderRadius: 18, padding: 16, marginTop: 12,
-    shadowColor: CP.dark,
+    backgroundColor: Colors.surface, borderRadius: 18, padding: 16, marginTop: 12,
+    shadowColor: Colors.text,
     shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 6, elevation: 2,
   },
   viewQrIconWrap: {
     width: 46, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
   },
-  viewQrText: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: CP.text },
-  viewQrSub:  { fontFamily: 'Poppins_400Regular', fontSize: 12, color: CP.muted, marginTop: 1 },
+  viewQrText: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: Colors.text },
+  viewQrSub:  { fontFamily: 'Poppins_400Regular', fontSize: 12, color: Colors.textTertiary, marginTop: 1 },
 });
