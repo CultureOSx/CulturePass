@@ -68,7 +68,7 @@ function TransactionItem({ item, colors }: TxItemProps) {
 export default function TransactionsScreen() {
   const insets      = useSafeAreaInsets();
   const topInset    = Platform.OS === 'web' ? 0 : insets.top;
-  const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
+  const bottomInset = Platform.OS === 'web' ? 0 : insets.bottom;
   const colors      = useColors();
   const { userId, isAuthenticated } = useAuth();
 
