@@ -156,7 +156,7 @@ export default function TicketDetailScreen() {
               : `/api/tickets/${ticket.id}/wallet/google`;
             const res  = await apiRequest('GET', endpoint);
             const data = await res.json() as { url?: string };
-            if (data.url) { await Linking.openURL(data.url); }
+            if (data.url && (data.url.startsWith('https://') || data.url.startsWith('http://'))) { await Linking.openURL(data.url); }
             else { Alert.alert('Success', `Ticket added to ${walletName}!`); }
           } catch {
             Alert.alert('Error', `Could not add to ${walletName}. Please try again.`);

@@ -15,6 +15,7 @@ import { useColors } from '@/hooks/useColors';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useCouncil } from '@/hooks/useCouncil';
 import { useLayout } from '@/hooks/useLayout';
+import { CultureTokens } from '@/constants/theme';
 
 interface Perk {
   id: string;
@@ -206,26 +207,26 @@ export default function PerksTabScreen() {
         >
           {/* Hero banner */}
           <LinearGradient
-            colors={[colors.primary, '#FF8C42', '#FF5E5B']}
+            colors={[colors.primary, CultureTokens.saffron, CultureTokens.coral]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={[s.heroBanner, shellStyle, { borderRadius: 24, shadowColor: '#FF8C42', shadowOpacity: 0.18, shadowRadius: 18, elevation: 6 }]}
+            style={[s.heroBanner, shellStyle, { borderRadius: 24, shadowColor: CultureTokens.saffron, shadowOpacity: 0.18, shadowRadius: 18, elevation: 6 }]}
           >
             <View style={s.heroOrb} />
             <View style={s.heroIconWrap}>
-              <Ionicons name="sparkles" size={34} color="#FFC857" />
+              <Ionicons name="sparkles" size={34} color={CultureTokens.gold} />
             </View>
-            <Text style={[s.heroTitle, { color: '#fff', fontSize: 28, fontWeight: '700', letterSpacing: 2 }]}>CulturePass Perks</Text>
-            <Text style={[s.heroSub, { color: '#fff', fontSize: 16, fontWeight: '500', marginBottom: 10 }]}>Unlock exclusive rewards, discounts, and experiences</Text>
-            <View style={[s.heroStats, { gap: 12 }]}> 
-              <View style={{ backgroundColor: '#FF8C42', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 6 }}>
-                <Text style={{ color: '#2C2A72', fontWeight: '700', fontSize: 15 }}>Total: {perks.length}</Text>
+            <Text style={[s.heroTitle, { color: '#fff', fontSize: 28, fontFamily: 'Poppins_700Bold', letterSpacing: 2 }]}>CulturePass Perks</Text>
+            <Text style={[s.heroSub, { color: '#fff', fontSize: 16, fontFamily: 'Poppins_500Medium', marginBottom: 10 }]}>Unlock exclusive rewards, discounts, and experiences</Text>
+            <View style={[s.heroStats, { gap: 12 }]}>
+              <View style={{ backgroundColor: CultureTokens.saffron, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 6 }}>
+                <Text style={{ color: CultureTokens.indigo, fontFamily: 'Poppins_700Bold', fontSize: 15 }}>Total: {perks.length}</Text>
               </View>
-              <View style={{ backgroundColor: '#2EC4B6', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 6 }}>
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Available: {activePerkCount}</Text>
+              <View style={{ backgroundColor: CultureTokens.teal, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 6 }}>
+                <Text style={{ color: '#fff', fontFamily: 'Poppins_700Bold', fontSize: 15 }}>Available: {activePerkCount}</Text>
               </View>
-              <View style={{ backgroundColor: '#FF5E5B', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 6 }}>
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Tier: {membership?.tier?.toUpperCase() ?? 'FREE'}</Text>
+              <View style={{ backgroundColor: CultureTokens.coral, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 6 }}>
+                <Text style={{ color: '#fff', fontFamily: 'Poppins_700Bold', fontSize: 15 }}>Tier: {membership?.tier?.toUpperCase() ?? 'FREE'}</Text>
               </View>
             </View>
           </LinearGradient>
@@ -383,7 +384,7 @@ function PerkCard({
       style={({ pressed }) => [
         s.perkCard,
         {
-          backgroundColor: 'rgba(44,42,114,0.92)',
+          backgroundColor: CultureTokens.indigo + 'EB',
           borderColor: typeColor,
           opacity: pressed ? 0.92 : 1,
           shadowColor: typeColor,
@@ -400,20 +401,20 @@ function PerkCard({
         </View>
 
         <View style={s.perkInfo}>
-          <Text style={[s.perkTitle, { color: '#fff', fontSize: 17, fontWeight: '700' }]} numberOfLines={2}>{perk.title}</Text>
+          <Text style={[s.perkTitle, { color: '#fff', fontSize: 17, fontFamily: 'Poppins_700Bold' }]} numberOfLines={2}>{perk.title}</Text>
           <View style={s.providerRow}>
-            <Ionicons name="business-outline" size={13} color="#FFC857" />
-            <Text style={[s.perkProvider, { color: '#FFC857', fontWeight: '600' }]}> 
+            <Ionicons name="business-outline" size={13} color={CultureTokens.gold} />
+            <Text style={[s.perkProvider, { color: CultureTokens.gold, fontFamily: 'Poppins_600SemiBold' }]}>
               {perk.providerName ?? 'CulturePass'}
             </Text>
           </View>
         </View>
 
         <View style={s.perkValueWrap}>
-          <View style={[s.perkValue, { backgroundColor: '#FF8C42' }]}> 
-            <Text style={[s.perkValueText, { color: '#2C2A72', fontWeight: '700' }]}>{formattedValue}</Text>
+          <View style={[s.perkValue, { backgroundColor: CultureTokens.saffron }]}>
+            <Text style={[s.perkValueText, { color: CultureTokens.indigo, fontFamily: 'Poppins_700Bold' }]}>{formattedValue}</Text>
           </View>
-          <Pressable hitSlop={8} onPress={onShare} style={[s.shareBtn, { backgroundColor: '#2EC4B6' }]}> 
+          <Pressable hitSlop={8} onPress={onShare} style={[s.shareBtn, { backgroundColor: CultureTokens.teal }]}>
             <Ionicons name="share-outline" size={17} color="#fff" />
           </Pressable>
         </View>
@@ -421,29 +422,29 @@ function PerkCard({
 
       {/* Description */}
       {perk.description && (
-        <Text style={[s.perkDesc, { color: '#fff', opacity: 0.85, fontSize: 14 }]} numberOfLines={2}>{perk.description}</Text>
+        <Text style={[s.perkDesc, { color: '#fff', opacity: 0.85, fontSize: 14, fontFamily: 'Poppins_400Regular' }]} numberOfLines={2}>{perk.description}</Text>
       )}
 
       {/* Meta tags */}
       <View style={s.perkMeta}>
         {perk.isMembershipRequired && (
-          <View style={[s.metaTag, { backgroundColor: '#FFC857', borderColor: '#FFC857' }]}> 
-            <Ionicons name="star" size={12} color="#2C2A72" />
-            <Text style={[s.metaTagText, { color: '#2C2A72', fontWeight: '700' }]}>CulturePass+ Only</Text>
+          <View style={[s.metaTag, { backgroundColor: CultureTokens.gold, borderColor: CultureTokens.gold }]}>
+            <Ionicons name="star" size={12} color={CultureTokens.indigo} />
+            <Text style={[s.metaTagText, { color: CultureTokens.indigo, fontFamily: 'Poppins_700Bold' }]}>CulturePass+ Only</Text>
           </View>
         )}
         {!!perk.usageLimit && (
-          <View style={[s.metaTag, { backgroundColor: '#2EC4B6', borderColor: '#2EC4B6' }]}> 
+          <View style={[s.metaTag, { backgroundColor: CultureTokens.teal, borderColor: CultureTokens.teal }]}>
             <Ionicons name="people" size={12} color="#fff" />
-            <Text style={[s.metaTagText, { color: '#fff', fontWeight: '700' }]}> 
+            <Text style={[s.metaTagText, { color: '#fff', fontFamily: 'Poppins_700Bold' }]}>
               {perk.usageLimit - (perk.usedCount ?? 0)} left
             </Text>
           </View>
         )}
         {perk.endDate && (
-          <View style={[s.metaTag, { backgroundColor: '#FF5E5B', borderColor: '#FF5E5B' }]}> 
+          <View style={[s.metaTag, { backgroundColor: CultureTokens.coral, borderColor: CultureTokens.coral }]}>
             <Ionicons name="calendar" size={12} color="#fff" />
-            <Text style={[s.metaTagText, { color: '#fff', fontWeight: '700' }]}> 
+            <Text style={[s.metaTagText, { color: '#fff', fontFamily: 'Poppins_700Bold' }]}>
               Ends {new Date(perk.endDate).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
             </Text>
           </View>

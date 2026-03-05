@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Pressable, TextInput, ActivityIndicator, Linking, View, Text, StyleSheet, ScrollView, Switch, Platform } from 'react-native';
@@ -86,13 +87,7 @@ function CouncilCard({ council, isAuthenticated }: { council: any; isAuthenticat
   return (
     <Pressable
       onPress={() => {
-        // Expo Router navigation to dynamic detail page
-        if (Platform.OS === 'web') {
-          window.location.href = `/council/${council.id}`;
-        } else {
-          // @ts-ignore
-          require('expo-router').router.push({ pathname: '/council/[id]', params: { id: council.id } });
-        }
+        router.push({ pathname: '/council/[id]', params: { id: council.id } });
       }}
       style={{ backgroundColor: '#fff', borderRadius: 18, padding: 28, shadowColor: '#2C2A72', shadowOpacity: 0.12, shadowRadius: 12, marginBottom: 16, elevation: 2 }}
       accessibilityRole="button"
