@@ -1,6 +1,7 @@
 import type { EntityType, SocialLinks } from './common';
 
 export interface Profile {
+    cpid?: string;
   id: string;
   name: string;
   title?: string;

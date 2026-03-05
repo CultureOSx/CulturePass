@@ -72,7 +72,7 @@ export default function PerksTabScreen() {
     : undefined;
   const { userId } = useAuth();
   const { data: councilData } = useCouncil();
-  const openGrants = (councilData?.grants ?? []).filter((grant) => grant.status === 'open');
+  const openGrants = (councilData?.grants ?? []).filter((grant: any) => grant.status === 'open');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
   // FIX: Track which perk ID is being redeemed so only that card shows pending

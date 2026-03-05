@@ -93,7 +93,13 @@ export function WebSidebar() {
   };
 
   const navigate = (route: string) => {
-    router.navigate(route as Parameters<typeof router.navigate>[0]);
+    try {
+      router.navigate(route as Parameters<typeof router.navigate>[0]);
+    } catch (err) {
+      if (typeof window !== 'undefined') {
+        window.alert('Navigation failed. This page may not exist or is not available on web.');
+      }
+    }
   };
 
   const displayName = user?.displayName ?? user?.username ?? user?.id?.slice(0, 8) ?? 'You';

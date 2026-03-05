@@ -133,6 +133,18 @@ export default function EventDetailScreen() {
   );
 }
 
+import type { EventData } from '@/shared/schema/event';
+import type { ViewStyle, TextStyle } from 'react-native';
+
+interface EventDetailProps {
+  event: EventData;
+  topInset: number;
+  bottomInset: number;
+  styles: { [key: string]: ViewStyle | TextStyle };
+  modalStyles: { [key: string]: ViewStyle | TextStyle };
+  colors: { [key: string]: string };
+}
+
 export function EventDetail({
   event,
   topInset,
@@ -140,7 +152,7 @@ export function EventDetail({
   styles,
   modalStyles,
   colors,
-}) {
+}: EventDetailProps) {
   const { isEventSaved, toggleSaveEvent } = useSaved();
   const { state } = useOnboarding();
   const { userId } = useAuth();
@@ -319,7 +331,7 @@ export function EventDetail({
     },
   });
 
-  const selectedTier = event.tiers[selectedTierIndex];
+  const selectedTier = event.tiers?.[selectedTierIndex];
   const maxQty =
     buyMode === "family" ? 1 : Math.min(20, selectedTier?.available ?? 1);
   const familySize = 4;
@@ -384,10 +396,10 @@ export function EventDetail({
 
     const ticketLabel =
       buyMode === "family"
-        ? `${selectedTier.name} (Family Pack)`
+        ? `${selectedTier?.name ?? ''} (Family Pack)`
         : buyMode === "group"
-          ? `${selectedTier.name} (Group)`
-          : selectedTier.name;
+          ? `${selectedTier?.name ?? ''} (Group)`
+          : selectedTier?.name ?? '';
 
     if (totalPrice <= 0) {
       purchaseFreeTicket({
@@ -448,7 +460,7 @@ export function EventDetail({
     const [year, month, day] = event.date.split("-").map(Number);
     if (!year || !month || !day) return null;
     const eventDate = new Date(year, month - 1, day);
-    const timeParts = event.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    const timeParts = event.time?.match(/(\d+):(\d+)\s*(AM|PM)/i);
     if (timeParts) {
       let hours = parseInt(timeParts[1], 10);
       const mins = parseInt(timeParts[2], 10);
@@ -468,8 +480,8 @@ export function EventDetail({
 
   const capacityPercent = useMemo(
     () =>
-      event.capacity > 0
-        ? Math.min(100, Math.round((event.attending / event.capacity) * 100))
+      (event.capacity ?? 0) > 0
+        ? Math.min(100, Math.round(((event.attending ?? 0) / (event.capacity ?? 1)) * 100))
         : 0,
     [event.attending, event.capacity],
   );
@@ -496,7 +508,7 @@ export function EventDetail({
   );
 
   const avatarCount = 5;
-  const remainingCount = Math.max(0, event.attending - avatarCount);
+  const remainingCount = Math.max(0, (event.attending ?? 0) - avatarCount);
 
   const handleShare = useCallback(async () => {
     try {
@@ -574,7 +586,7 @@ export function EventDetail({
               <View style={styles.heroBadge}>
                 <Text style={styles.heroBadgeText}>{event.communityTag}</Text>
               </View>
-              {event.councilTag ? (
+              {(event.councilId ?? event.communityTag) ? (
                 <View
                   style={[
                     styles.heroBadge,
@@ -582,7 +594,7 @@ export function EventDetail({
                   ]}
                 >
                   <Ionicons name="shield-checkmark" size={12} color={colors.textInverse} />
-                  <Text style={styles.heroBadgeText}>{event.councilTag}</Text>
+                  <Text style={styles.heroBadgeText}>{event.councilId ?? event.communityTag ?? ''}</Text>
                 </View>
               ) : null}
               {event.indigenousTags?.map((tag: string) => (
@@ -599,7 +611,7 @@ export function EventDetail({
               ))}
             </View>
             <Text style={[styles.heroTitle, { color: colors.textInverse }]}>{event.title}</Text>
-            <Text style={styles.heroOrganizer}>by {event.organizer}</Text>
+            <Text style={styles.heroOrganizer}>by {event.organizerId ?? ''}</Text>
           </View>
         </LinearGradient>
       </View>

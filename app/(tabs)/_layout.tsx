@@ -38,6 +38,7 @@ const TABS = [
   { name: 'index',        label: 'Discover',  icon: 'compass-outline',       iconActive: 'compass',        symbol: 'safari',        symbolActive: 'safari.fill'        },
   { name: 'calendar',    label: 'Calendar',   icon: 'calendar-outline',      iconActive: 'calendar',       symbol: 'calendar',      symbolActive: 'calendar.fill'      },
   { name: 'communities', label: 'Community',  icon: 'people-outline',        iconActive: 'people',         symbol: 'person.3',      symbolActive: 'person.3.fill'      },
+  { name: 'council',     label: 'Councils',   icon: 'business-outline',      iconActive: 'business',       symbol: 'building.2',    symbolActive: 'building.2.fill'    },
   { name: 'perks',       label: 'Perks',      icon: 'gift-outline',          iconActive: 'gift',           symbol: 'gift',          symbolActive: 'gift.fill'          },
   { name: 'profile',     label: 'Profile',    icon: 'person-circle-outline', iconActive: 'person-circle',  symbol: 'person.circle', symbolActive: 'person.circle.fill' },
 ] as const;
@@ -152,7 +153,7 @@ function TabItem({ tab, focused, color, activeColor, onPress, flex, isDesktopMen
         style={[
           tabItemStyles.label,
           {
-            color: Platform.OS === 'web' ? colors.text : (focused ? activeColor : color),
+            color: Platform.OS === 'web' ? color : (focused ? activeColor : color),
             fontFamily: focused ? 'Poppins_600SemiBold' : 'Poppins_500Medium',
             fontSize: isDesktopMenu ? 14 : TabBarTokens.labelSize,
           },
