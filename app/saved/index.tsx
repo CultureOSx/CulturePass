@@ -77,9 +77,12 @@ export default function SavedScreen() {
               style={[s.tab, { backgroundColor: colors.surface, borderColor: colors.borderLight },
                 isActive && { backgroundColor: colors.primary + '10', borderColor: colors.primary + '30' }]}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setActiveTab(tab.key);
               }}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={tab.label}
             >
               <Ionicons name={tab.icon as never} size={16} color={isActive ? colors.primary : colors.textSecondary} />
               <Text style={[s.tabText, { color: colors.text }, isActive && { color: colors.primary }]}>{tab.label}</Text>

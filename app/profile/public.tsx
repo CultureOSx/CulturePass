@@ -18,6 +18,7 @@ import type { User, Membership } from '@shared/schema';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useColors } from '@/hooks/useColors';
 import { api } from '@/lib/api';
+import { CP } from './constants';
 
 import {
   CP,

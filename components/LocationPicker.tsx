@@ -31,7 +31,7 @@ export function LocationPicker() {
   const [step, setStep] = useState<'state' | 'city'>('state');
   const [pendingState, setPendingState] = useState('');
   const insets = useSafeAreaInsets();
-  const topInset = Platform.OS === 'web' ? 67 : insets.top;
+  const topInset = Platform.OS === 'web' ? 0 : insets.top;
 
   const open = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

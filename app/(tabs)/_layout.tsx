@@ -152,7 +152,7 @@ function TabItem({ tab, focused, color, activeColor, onPress, flex, isDesktopMen
         style={[
           tabItemStyles.label,
           {
-            color: Platform.OS === 'web' ? '#000' : (focused ? activeColor : color),
+            color: Platform.OS === 'web' ? colors.text : (focused ? activeColor : color),
             fontFamily: focused ? 'Poppins_600SemiBold' : 'Poppins_500Medium',
             fontSize: isDesktopMenu ? 14 : TabBarTokens.labelSize,
           },
@@ -221,7 +221,7 @@ function CustomTabBar({ state, navigation, position = 'bottom' }: CustomTabBarPr
           style={[
             StyleSheet.absoluteFill,
             {
-              backgroundColor: Platform.OS === 'web' ? '#2C2A72' : (isDark ? 'rgba(6,11,20,0.94)' : 'rgba(255,255,255,0.98)'),
+              backgroundColor: Platform.OS === 'web' ? CultureTokens.indigo : (isDark ? 'rgba(6,11,20,0.94)' : 'rgba(255,255,255,0.98)'),
             },
           ]}
         />
@@ -246,7 +246,7 @@ function CustomTabBar({ state, navigation, position = 'bottom' }: CustomTabBarPr
           const focused = state.index === state.routes.indexOf(route);
 
           const onPress = () => {
-            Haptics.selectionAsync();
+            if (Platform.OS !== 'web') Haptics.selectionAsync();
             const event = navigation.emit({
               type: 'tabPress',
               target: route.key,

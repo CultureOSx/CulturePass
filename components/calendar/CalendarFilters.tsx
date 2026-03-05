@@ -1,52 +1,79 @@
-import { View, Text, Pressable, StyleSheet } from "react-native"
-import { useState } from "react"
+import { View, Text, Pressable, StyleSheet, ScrollView, Platform } from 'react-native';
+import { useState } from 'react';
+import { useColors } from '@/hooks/useColors';
+import * as Haptics from 'expo-haptics';
 
-const filters = [
-  "All",
-  "Festival",
-  "Movie",
-  "Workshop",
-  "Council",
-]
+const FILTERS = ['All', 'Festival', 'Movie', 'Workshop', 'Council'] as const;
+type FilterOption = (typeof FILTERS)[number];
 
-export default function CalendarFilters({ onFilter }) {
-  const [selected, setSelected] = useState("All")
-  function select(filter: string) {
-    setSelected(filter)
-    onFilter(filter)
+interface CalendarFiltersProps {
+  onFilter: (filter: FilterOption) => void;
+  initialFilter?: FilterOption;
+}
+
+export default function CalendarFilters({ onFilter, initialFilter = 'All' }: CalendarFiltersProps) {
+  const colors = useColors();
+  const [selected, setSelected] = useState<FilterOption>(initialFilter);
+
+  function select(filter: FilterOption) {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    setSelected(filter);
+    onFilter(filter);
   }
+
   return (
-    <View style={styles.container}>
-      {filters.map((filter) => (
-        <Pressable
-          key={filter}
-          onPress={() => select(filter)}
-          style={[styles.filter, selected === filter && styles.active]}
-        >
-          <Text style={styles.text}>{filter}</Text>
-        </Pressable>
-      ))}
-    </View>
-  )
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.container}
+    >
+      {FILTERS.map((filter) => {
+        const isActive = selected === filter;
+        return (
+          <Pressable
+            key={filter}
+            onPress={() => select(filter)}
+            style={[
+              styles.filter,
+              {
+                backgroundColor: isActive ? colors.primary : colors.surface,
+                borderColor: isActive ? colors.primary : colors.borderLight,
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isActive }}
+            accessibilityLabel={`Filter by ${filter}`}
+          >
+            <Text
+              style={[
+                styles.text,
+                { color: isActive ? colors.textInverse : colors.text },
+              ]}
+            >
+              {filter}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingHorizontal: 16,
-    marginBottom: 10,
+    paddingVertical: 8,
+    gap: 8,
   },
   filter: {
-    marginRight: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: "#f2f2f2",
-  },
-  active: {
-    backgroundColor: "#000",
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
   },
   text: {
-    color: "#fff",
-  }
-})
+    fontSize: 13,
+    fontFamily: 'Poppins_500Medium',
+  },
+});

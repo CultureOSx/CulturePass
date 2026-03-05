@@ -1,58 +1,81 @@
-import { View, Text, Pressable, StyleSheet } from "react-native"
-import { useState } from "react"
+import { View, Text, Pressable, StyleSheet, ScrollView, Platform } from 'react-native';
+import { useState } from 'react';
+import { useColors } from '@/hooks/useColors';
+import * as Haptics from 'expo-haptics';
 
-const TABS = [
-  "All",
-  "My Events",
-  "Tickets",
-  "Council",
-  "Interests",
-]
+const TABS = ['All', 'My Events', 'Tickets', 'Council', 'Interests'] as const;
+type Tab = (typeof TABS)[number];
 
-export default function CalendarTabs({ onChange }) {
-  const [active, setActive] = useState("All")
-  function select(tab: string) {
-    setActive(tab)
-    onChange(tab)
+interface CalendarTabsProps {
+  onChange: (tab: Tab) => void;
+  initialTab?: Tab;
+}
+
+export default function CalendarTabs({ onChange, initialTab = 'All' }: CalendarTabsProps) {
+  const colors = useColors();
+  const [active, setActive] = useState<Tab>(initialTab);
+
+  function select(tab: Tab) {
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
+    setActive(tab);
+    onChange(tab);
   }
+
   return (
-    <View style={styles.container}>
-      {TABS.map((tab) => (
-        <Pressable
-          key={tab}
-          onPress={() => select(tab)}
-          style={[styles.tab, active === tab && styles.activeTab]}
-        >
-          <Text style={[styles.text, active === tab && styles.activeText]}>
-            {tab}
-          </Text>
-        </Pressable>
-      ))}
-    </View>
-  )
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.container}
+    >
+      {TABS.map((tab) => {
+        const isActive = active === tab;
+        return (
+          <Pressable
+            key={tab}
+            onPress={() => select(tab)}
+            style={[
+              styles.tab,
+              {
+                backgroundColor: isActive ? colors.primary : colors.surface,
+                borderColor: isActive ? colors.primary : colors.borderLight,
+              },
+            ]}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isActive }}
+            accessibilityLabel={tab}
+          >
+            <Text
+              style={[
+                styles.text,
+                {
+                  color: isActive ? colors.textInverse : colors.textSecondary,
+                  fontFamily: isActive ? 'Poppins_600SemiBold' : 'Poppins_500Medium',
+                },
+              ]}
+            >
+              {tab}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingHorizontal: 16,
     paddingVertical: 10,
+    gap: 8,
   },
   tab: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    backgroundColor: "#eee",
+    paddingHorizontal: 16,
+    paddingVertical: 7,
     borderRadius: 20,
-    marginRight: 8,
-  },
-  activeTab: {
-    backgroundColor: "#111",
+    borderWidth: 1,
   },
   text: {
-    fontSize: 14,
-    color: "#333",
+    fontSize: 13,
   },
-  activeText: {
-    color: "#fff",
-  }
-})
+});

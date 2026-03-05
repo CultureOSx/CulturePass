@@ -82,7 +82,6 @@ export default function ContactsScreen() {
   const topInset = Platform.OS === 'web' ? 0 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
   const { contacts, removeContact, clearContacts } = useContacts();
-  const filteredContacts = contacts;
 
   const handleRemove = useCallback((contact: SavedContact) => {
     Alert.alert(
@@ -94,7 +93,7 @@ export default function ContactsScreen() {
           text: 'Remove',
           style: 'destructive',
           onPress: () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             removeContact(contact.cpid);
           },
         },
@@ -180,12 +179,12 @@ export default function ContactsScreen() {
         </View>
       ) : (
         <FlatList
-          data={filteredContacts}
+          data={contacts}
           keyExtractor={item => item.cpid}
           renderItem={renderItem}
           contentContainerStyle={{ paddingBottom: 40 + bottomInset, paddingHorizontal: 20 }}
           showsVerticalScrollIndicator={false}
-          scrollEnabled={!!filteredContacts.length}
+          scrollEnabled={!!contacts.length}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
       )}

@@ -30,10 +30,10 @@ import { useAuth } from "@/lib/auth";
 import { getStyles, getModalStyles } from "./styles/EventDetailStyles";
 import { useColors } from '@/hooks/useColors';
 import { useOnboarding } from '@/contexts/OnboardingContext';
-import { calculateDistance, getPostcodesByPlace } from '@shared/location/australian-postcodes';
+import { calculateDistance, getPostcodesByPlace } from '@/shared/location/australian-postcodes';
 import * as Location from 'expo-location';
 
-type SampleEvent = any;
+import type { EventData as SampleEvent } from '@/shared/schema';
 
 function formatDate(dateStr: string): string {
   const [year, month, day] = dateStr.split("-").map(Number);
