@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Colors, CultureTokens, Spacing } from '@/constants/theme';
+import { CP } from '@/components/user/profileUtils';
 
 export const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
