@@ -90,7 +90,7 @@ export default function PaymentMethodsScreen() {
       Alert.alert('Missing Fields', 'Please fill in all required fields.');
       return;
     }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     createMutation.mutate({
       userId,
       type: formData.type,
@@ -108,7 +108,7 @@ export default function PaymentMethodsScreen() {
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Remove', style: 'destructive', onPress: () => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           deleteMutation.mutate(id);
         },
       },
