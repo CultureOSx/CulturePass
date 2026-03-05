@@ -81,9 +81,9 @@ export default function NotificationsScreen() {
   // Fallback for web navigation: show a simple message if no notifications
   if (Platform.OS === 'web' && notifications.length === 0 && !isLoading) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#2C2A72' }}>Notifications</Text>
-        <Text style={{ marginTop: 12, color: '#636366' }}>Your notifications will appear here.</Text>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40, backgroundColor: colors.background }}>
+        <Text style={{ fontSize: 24, fontFamily: 'Poppins_700Bold', color: colors.primary }}>Notifications</Text>
+        <Text style={{ marginTop: 12, fontFamily: 'Poppins_400Regular', color: colors.textSecondary }}>Your notifications will appear here.</Text>
       </View>
     );
   }
@@ -99,7 +99,7 @@ export default function NotificationsScreen() {
         {unreadCount > 0 ? (
           <Pressable
             style={[s.markAllBtn, { backgroundColor: colors.primaryGlow }]}
-            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); markAllReadMutation.mutate(); }}
+            onPress={() => { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); markAllReadMutation.mutate(); }}
           >
             <Text style={[s.markAllText, { color: colors.primary }]}>Read All</Text>
           </Pressable>
@@ -140,9 +140,9 @@ export default function NotificationsScreen() {
             return (
               <Pressable
                 key={notif.id}
-                onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); if (!notif.isRead) markReadMutation.mutate(notif.id); }}
+                onPress={() => { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); if (!notif.isRead) markReadMutation.mutate(notif.id); }}
                 onLongPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   Alert.alert('Delete Notification', 'Remove this notification?', [
                     { text: 'Cancel', style: 'cancel' },
                     { text: 'Delete', style: 'destructive', onPress: () => deleteMutation.mutate(notif.id) },

@@ -1,4 +1,5 @@
-import { View, Text, Pressable, StyleSheet, TextInput, ScrollView, Platform, Image } from 'react-native';
+import { View, Text, Pressable, StyleSheet, TextInput, ScrollView, Platform } from 'react-native';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
