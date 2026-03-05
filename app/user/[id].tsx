@@ -81,7 +81,7 @@ export default function UserProfileScreen() {
           style={[styles.hero, { paddingTop: topInset + 8, justifyContent: 'center', alignItems: 'center', minHeight: 340 }]}
         >
           <ActivityIndicator size="large" color={CultureTokens.teal} />
-          <Text style={{ color: CultureTokens.textMuted, marginTop: 12, fontFamily: 'Poppins_400Regular', fontSize: 13 }}>
+          <Text style={{ color: colors.textMuted, marginTop: 12, fontFamily: 'Poppins_400Regular', fontSize: 13 }}>
             Loading profile...
           </Text>
         </LinearGradient>
@@ -92,7 +92,7 @@ export default function UserProfileScreen() {
   if (!user) {
     return (
       <View style={[styles.container, styles.centered]}>
-        <Ionicons name="person-outline" size={52} color={CultureTokens.textMuted} />
+        <Ionicons name="person-outline" size={52} color={colors.textMuted} />
         <Text style={[styles.errorText, { marginTop: 14 }]}>Profile not found</Text>
         <Pressable style={styles.goBackButton} onPress={handleBack}>
           <Text style={styles.goBackButtonText}>Go Back</Text>
@@ -140,7 +140,7 @@ export default function UserProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: CultureTokens.background },
+  container: { flex: 1, backgroundColor: colors.background },
   centered:  { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   errorText:        { fontSize: 16, fontFamily: 'Poppins_500Medium', color: '#94A3B8' },

@@ -86,9 +86,7 @@ function DataSync() {
           setSubscriptionTier(tier);
         }
         // Fallback: If user profile is complete but onboarding is not, complete onboarding
-        if (!state.isComplete && city && country && interests.length > 0) {
-          await import('@/contexts/OnboardingContext').then(ctx => ctx.completeOnboarding?.());
-        }
+        // Onboarding completion fallback removed: completeOnboarding does not exist on context
       } else if (prevUserIdRef.current !== null) {
         // User was authenticated and has now signed out — clear onboarding state.
         prevUserIdRef.current = null;

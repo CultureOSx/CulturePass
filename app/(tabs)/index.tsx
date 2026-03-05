@@ -436,7 +436,7 @@ export default function HomeScreen() {
   );
   const webArtists = useMemo(
     () => filterEventsForWeb(searchableEvents.filter((event) => {
-      const tag = `${event.organizer ?? ''} ${event.title}`.toLowerCase();
+      const tag = `${event.organizerId ?? ''} ${event.title}`.toLowerCase();
       return tag.includes('dj') || tag.includes('artist') || tag.includes('band') || tag.includes('live');
     }).slice(0, 12)),
     [searchableEvents, filterEventsForWeb]

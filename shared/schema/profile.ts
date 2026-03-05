@@ -1,6 +1,7 @@
 import type { EntityType, SocialLinks } from './common';
 
 export interface Profile {
+    cpid?: string;
   id: string;
   name: string;
   title?: string;
@@ -8,6 +9,7 @@ export interface Profile {
   entityType: string;
   description?: string;
   imageUrl?: string;
+  posterUrl?: string;
   coverImageUrl?: string;
   avatarUrl?: string;
   images?: string[];

@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, Image } from "react-native"
+import type { EventData } from '@shared/schema';
 
-export default function EventCard({ event }) {
+export default function EventCard({ event }: { event: EventData }) {
   return (
     <View style={styles.card}>
       <Image source={{ uri: event.imageUrl }} style={styles.image} />

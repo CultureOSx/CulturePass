@@ -1,6 +1,10 @@
 import { View, Text, Pressable, StyleSheet, ScrollView, Platform, Alert, Share } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { PerkAvailability } from '@/components/perks/PerkAvailability';
+import { PerkMembershipCard } from '@/components/perks/PerkMembershipCard';
+import { PerkIndigenousCard } from '@/components/perks/PerkIndigenousCard';
+import { PerkCouponModal } from '@/components/perks/PerkCouponModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import * as Haptics from 'expo-haptics';
