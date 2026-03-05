@@ -31,7 +31,7 @@ import type { User, Wallet, Membership, EventData } from '@/shared/schema';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GuestProfileView } from '@/components/profile/GuestProfileView';
 import { MenuItem } from '@/components/profile/MenuItem';
-import { Spacing, gradients } from '@/constants/theme';
+import { LayoutRules, Spacing, gradients } from '@/constants/theme';
 
 interface CommunityListItem {
   id: string;
