@@ -15,56 +15,153 @@ Cross-platform lifestyle/community platform for cultural diaspora communities (A
 ## Architecture
 
 ```
-app/                    Expo Router screens (96 routes)
-  (onboarding)/         Login, signup, location, interests, culture-match
-  (tabs)/               5-tab layout: Discover, Calendar, Community, Perks, Profile
-  event/[id].tsx        Event detail
-  profile/, tickets/    User profile, ticket management
-  admin/, dashboard/    Admin + organizer panels
+app/                    Expo Router screens (104 routes across 32 subdirectories)
+  (onboarding)/         Login, signup, location, interests, culture-match, forgot-password
+  (tabs)/               8-tab layout: Discover, Calendar, Communities, Council, Dashboard,
+                        Directory, Explore, Perks, Profile
+  event/[id].tsx        Event detail + styling
+  profile/              User profile edit, public view, QR identity card
+  tickets/              Ticket list, detail, print
+  payment/              Wallet, payment methods, transactions
+  membership/           Membership upgrade
+  search/               Search interface
+  saved/                Saved events
+  settings/             Settings (about, help, location, notifications, privacy)
+  legal/                Terms, privacy, cookies, guidelines
+  admin/                Admin panels (audit-logs, council-claims, council-management,
+                        notifications, users)
+  dashboard/            Organizer + council dashboards
+  perks/                Perks detail
+  notifications/        Notification center
+  contacts/             Contact directory
+  council/              Council management and claims
+  artist/, business/, venue/  Entity-type detail pages
+  communities/, community/    Community browsing + detail
+  activities/, shopping/, restaurants/, movies/  Category-specific browsing
+  submit/, help/        User submission and help screens
+  landing.tsx, get2know.tsx, map.tsx, allevents.tsx  Root utility screens
 
 components/
-  ui/                   Button, Card, Badge, Input, Avatar, Checkbox, Skeleton, SocialButton
-  Discover/             EventCard, WebHeroCarousel, WebRailSection, SpotlightCard, CityCard
-  web/WebSidebar.tsx    Left sidebar navigation (desktop web, 240px)
-  perks/, scanner/      Feature-specific component bundles
+  ui/                   Button, Card, Badge, Input, Avatar, Checkbox, Skeleton, SocialButton,
+                        BackButton, InlinePopoverSelect, PasswordStrengthIndicator
+                        (barrel export via ui/index.ts)
+  Discover/             EventCard, WebHeroCarousel, WebRailSection, SpotlightCard, CityCard,
+                        CategoryCard, CommunityCard, SectionHeader, WebEventRailCard
+  web/                  WebSidebar.tsx (240px fixed desktop nav),
+                        WebTopBar.tsx (desktop top bar)
+  calendar/             CalendarFilters, CalendarMonthGrid, CalendarTabs, EventCard, MapToggle
+  perks/                PerkAbout, PerkAvailability, PerkCouponModal, PerkDetails, PerkHero,
+                        PerkIndigenousCard, PerkMembershipCard (+ constants, types, utils)
+  scanner/              TicketResultCard, Scanner.styles, types, utils
+  user/                 UserProfileAbout, UserProfileDetails, UserProfileHero,
+                        UserProfileIdentity, UserProfileSocial, UserProfileTier, profileUtils
+  tabs/                 TabScreenShell, TabSectionShell
+  profile/              GuestProfileView, MenuItem
+  AuthGuard.tsx         Route guard — wrap protected screens
+  BrowsePage.tsx        Reusable browse/list page pattern
   ErrorBoundary.tsx     Wrap every screen with async data in this
+  ErrorFallback.tsx     UI shown when ErrorBoundary catches
+  EventCard.tsx         Root-level event card (shared across tabs)
+  EventCardSkeleton.tsx Loading skeleton for event cards
+  FilterChip.tsx        Filter pill component
+  FilterModal.tsx       Bottom-sheet filter modal
+  KeyboardAwareScrollViewCompat.tsx  Cross-platform keyboard avoidance
+  LocationPicker.tsx    City/country selector component
+  NativeMapView         Platform-split map (NativeMapView.native.tsx / .web.tsx)
+  SocialLinksBar.tsx    Social media links row
 
 constants/
-  theme.ts              SINGLE IMPORT POINT — re-exports colors, spacing, typography, elevation
+  theme.ts              SINGLE IMPORT POINT — re-exports all tokens below
   colors.ts             CultureTokens, light/dark themes, shadows, glass, gradients, neon
   typography.ts         Poppins scale + desktop overrides
   spacing.ts            4-point grid, Breakpoints, Layout
+  animations.ts         Duration presets, Spring configs, easing curves (Reanimated)
+  elevation.ts          Shadow elevation system
+  locations.ts          Australian states, cities, postcodes
+  onboardingInterests.ts  Cultural interest categories for onboarding
 
 hooks/
   useColors.ts          Theme-aware color access (dark = default on native, light = web)
   useLayout.ts          Responsive layout values: isDesktop, numColumns, hPad, sidebarWidth, columnWidth()
   useRole.ts            Role checking: isOrganizer, isAdmin, hasMinRole()
-  useProfile.ts         User profile loading with React Query
+  useProfile.ts         User profile loading + completeness scoring (React Query)
+  useCouncil.ts         Centralized council data (claims, council members, permissions)
+  usePushNotifications.ts  FCM push notification registration + token management
+  useLocationFilter.ts  Location-aware filtering helper
+  useLocations.ts       Location hierarchy (countries → states → cities)
+  useNearestCity.ts     GPS-based nearest city detection
 
 lib/
   api.ts                Typed API client — ONLY way to call the backend
   auth.tsx              Firebase Auth provider + useAuth() hook
   firebase.ts           Firebase SDK init (platform-aware: AsyncStorage on native, localStorage on web)
   query-client.ts       TanStack React Query setup + apiRequest()
+  feature-flags.ts      Feature flag management (integrates with services/rollout.ts)
+  navigation.ts         Navigation utility helpers (typed route builders)
+  reporting.ts          Centralized error / event reporting (Sentry-ready)
+  image-manipulator.ts          Platform image manipulation (shared interface)
+  image-manipulator.native.ts   Native implementation (expo-image-manipulator)
+  image-manipulator.web.ts      Web implementation (Canvas API)
 
 contexts/
   OnboardingContext     city, country, interests, isComplete — synced from auth user on login
   SavedContext          saved events, joined communities (local + API)
   ContactsContext       user contacts directory
 
-shared/schema.ts        Shared TypeScript types (EventData, User, Ticket, Profile…)
-shared/schema/          Individual schema files per domain (event.ts, user.ts, ticket.ts…)
+shared/schema.ts        Master re-export of all schema types
+shared/schema/          Domain-specific TypeScript types:
+  event.ts              EventData
+  user.ts               User, UserRole
+  ticket.ts             Ticket, TicketStatus
+  profile.ts            Profile, EntityType
+  wallet.ts             Wallet, Transaction
+  notification.ts       Notification, NotificationPayload
+  perk.ts               Perk, PerkRedemption
+  moderation.ts         ModerationResult
+  media.ts              MediaAsset, ImageUpload
+  social.ts             SocialLinks
+  entities.ts           Entity base types
+  common.ts             Shared utility types
+shared/location/
+  australian-postcodes.ts  Postcode → suburb → state lookup data
 
 functions/src/
-  app.ts                90+ Express API routes
+  app.ts                90+ Express API routes (check before adding new routes — no duplicates)
   admin.ts              Firebase Admin SDK singleton
-  middleware/auth.ts    Firebase ID token verification + role guards
-  middleware/moderation.ts  Content moderation (bad words, suspicious links)
+  index.ts              Cloud Functions entry point
+  middleware/
+    auth.ts             Firebase ID token verification + role guards (requireRole())
+    moderation.ts       Content moderation (bad words, suspicious links)
   services/
-    firestore.ts        Typed Firestore data service (usersService, eventsService…)
+    firestore.ts        Typed Firestore services: usersService, eventsService,
+                        profilesService, ticketsService, walletsService, notificationsService
     search.ts           Weighted full-text + trigram search
     cache.ts            In-memory TTL cache (60s default)
     rollout.ts          Feature flag phased rollout
+    locations.ts        Location hierarchy service (countries/states/cities)
+  shared/
+    australian-postcodes.ts  Shared postcode data (server-side copy)
+
+server/                 Separate Node.js backend for image processing + jobs
+  src/
+    index.ts            Server entry point
+    middleware/verifyFirebase.ts  Firebase token verification
+    routes/jobs.ts      Background job processing
+    routes/processImage.ts  Sharp-based server-side image processing
+  Dockerfile            Container for Cloud Run / self-hosted deployment
+
+scripts/
+  build.js              Static export build script
+  server-dev.ts         Local server development runner
+  seed-account-catalog.ts     Account catalog seeding
+  test-native-intent.ts       Native deep link intent testing
+  tests/
+    unit-services-middleware.ts
+    unit-locations.ts
+    integration-api-routes.ts
+    integration-functions-council-claims.ts
+    e2e-critical-smoke.ts
+    validate-package-json.ts
 ```
 
 ---
@@ -129,6 +226,8 @@ Use: `const topInset = Platform.OS === 'web' ? 0 : insets.top;`
 - Check `isOrganizer` / `isAdmin` from `useRole()` before rendering sensitive UI.
 - Add `accessibilityLabel` and `accessibilityRole` to all interactive elements.
 - Run `npm run typecheck` and `npm run lint` before committing.
+- Use `lib/reporting.ts` for error/event tracking — never raw `console.error` in production paths.
+- Use `lib/feature-flags.ts` when building behind a feature flag — never hard-remove flags without checking rollout state.
 
 ---
 
@@ -194,6 +293,21 @@ gradients.sunset            // warm orange/coral — event cards
 gradients.midnight          // deep indigo — dark backgrounds
 ```
 
+### Animations
+```typescript
+import { AnimationDuration, SpringConfigs, Easing } from '@/constants/theme';
+
+// Duration presets
+AnimationDuration.fast    // 150ms
+AnimationDuration.normal  // 300ms
+AnimationDuration.slow    // 500ms
+
+// Spring configs for react-native-reanimated
+SpringConfigs.snappy      // stiff, fast response
+SpringConfigs.smooth      // gentle, fluid motion
+SpringConfigs.bouncy      // playful overshoot
+```
+
 ### Neon (Use Sparingly)
 ```typescript
 import { neon } from '@/constants/theme';
@@ -255,6 +369,8 @@ router.back();
 // Typed push with params:
 router.push({ pathname: '/profile/[id]', params: { id: profile.id } });
 ```
+
+Use `lib/navigation.ts` helpers for typed route building across the app — avoids hardcoded path strings.
 
 ### Route Guards
 - `AuthGuard` component wraps protected screens
@@ -343,6 +459,44 @@ user.isSydneyVerified, user.interests, user.communities
 
 ---
 
+## Council Ecosystem
+
+Cultural councils are a first-class feature — community governance bodies with their own admin flows.
+
+### useCouncil() Hook
+```typescript
+const { council, claims, isCouncilMember, isCouncilAdmin, submitClaim, approveClaim } = useCouncil();
+```
+
+### Council Routes
+- `app/council/` — Member-facing council screens
+- `app/admin/council-management/` — Platform admin panel for council management
+- `app/admin/council-claims/` — Claim review and approval
+
+### Backend
+- `functions/src/app.ts` — Council API routes (check for `/council/*` before adding)
+- `scripts/tests/integration-functions-council-claims.ts` — Integration tests for council claim flow
+- Run: `npm run test:integration:functions:council-claims`
+
+---
+
+## Feature Flags
+
+Control feature rollout without deploying new code:
+
+```typescript
+import { isFeatureEnabled } from '@/lib/feature-flags';
+
+if (isFeatureEnabled('new-calendar-view')) {
+  return <NewCalendarView />;
+}
+```
+
+Server-side: `functions/src/services/rollout.ts` handles phased percentile rollout.
+Never hard-remove a flag until rollout reaches 100% and has been stable for ≥ 1 week.
+
+---
+
 ## State Management
 
 | Concern | Solution |
@@ -356,6 +510,36 @@ user.isSydneyVerified, user.interests, user.communities
 
 ---
 
+## Image Handling
+
+Always use `expo-image` for rendering. For manipulation (resize, crop, compress):
+
+```typescript
+import { manipulateImage } from '@/lib/image-manipulator';
+
+// Works on iOS, Android, and web — platform impl selected automatically
+const result = await manipulateImage(uri, { width: 800, quality: 0.8 });
+```
+
+Server-side processing uses Sharp via `server/src/routes/processImage.ts`.
+Validate MIME type + file size on **both** client and server.
+
+---
+
+## Push Notifications
+
+FCM token registration is handled by `hooks/usePushNotifications.ts`:
+
+```typescript
+const { token, permissionStatus, requestPermission } = usePushNotifications();
+```
+
+Call `requestPermission()` after a meaningful user action, not on app launch.
+Register the token with the backend via `api.notifications.registerToken(token)`.
+Push notification docs: `docs/` (search `FCM`).
+
+---
+
 ## iOS-Specific Guidelines
 
 - Always test on physical iOS device for: haptics, BlurView, SF Symbols, safe area insets
@@ -365,7 +549,7 @@ user.isSydneyVerified, user.interests, user.communities
 - BlurView intensity: 60–90 for frosted glass effect; wrap in `try/catch` on simulator
 - Use `KeyboardAvoidingView` with `behavior="padding"` on iOS
 - Apple Sign-In is **required** by App Store guidelines if you offer other social sign-in
-- Push notifications: register FCM token via `expo-notifications` after login
+- Push notifications: register FCM token via `usePushNotifications()` after login
 - App Transport Security (ATS): all HTTP calls must go to HTTPS in production
 
 ---
@@ -414,13 +598,17 @@ user.isSydneyVerified, user.interests, user.communities
 ## Testing
 
 ```bash
-npm run test:unit          # Service + middleware unit tests
-npm run test:integration   # API route integration tests (requires running server)
-npm run test:e2e:smoke     # Critical path smoke tests
-npm run qa:all             # All of the above + package.json validation
-npm run typecheck          # TypeScript type check (no emits)
-npm run lint               # ESLint check
-npm run lint:fix           # ESLint auto-fix
+npm run test:unit                              # Service + middleware + location unit tests
+npm run test:integration                       # API route integration tests (requires emulator)
+npm run test:integration:functions:council-claims  # Council claim flow integration tests
+npm run test:e2e:smoke                         # Critical path smoke tests
+npm run test:native-intent                     # Native deep link intent testing
+npm run test:package-json                      # package.json schema validation
+npm run qa:all                                 # All of the above
+npm run qa:solid                               # lint + typecheck + all tests + build (full gate)
+npm run typecheck                              # TypeScript type check (no emits)
+npm run lint                                   # ESLint check
+npm run lint:fix                               # ESLint auto-fix
 ```
 
 ### Testing Patterns
@@ -458,6 +646,7 @@ STRIPE_PRICE_YEARLY_ID=price_...
 ```
 
 Mirror all `EXPO_PUBLIC_*` vars in `eas.json` under `build.*.env` for EAS builds.
+Server env template: `server/.env.example`.
 
 ---
 
@@ -476,6 +665,9 @@ npx expo start --web
 
 # Start Cloud Functions emulator
 firebase emulators:start --only functions,firestore,auth,storage
+
+# Start local image-processing server
+npm run server:dev
 
 # Type check (no output files)
 npm run typecheck
@@ -504,10 +696,17 @@ eas build --platform android --profile production
 eas submit --platform android
 ```
 
+### OTA Updates (Expo Updates)
+```bash
+npm run update:preview     # Push OTA update to preview channel
+npm run update:production  # Push OTA update to production channel
+```
+
 ### Web (Firebase Hosting)
 ```bash
 npm run build-web   # expo export --platform web → dist/
 npm run deploy-web  # build-web + firebase deploy --only hosting
+npm run deploy-all  # functions + hosting in one step
 ```
 
 ### Cloud Functions
@@ -551,6 +750,10 @@ profiles/{profileId}
   name, description, imageUrl, city, country
   ownerId, isVerified, rating
   socialLinks: { website, instagram, facebook, twitter }
+
+wallets/{userId}       (in-memory → migrate to Firestore)
+notifications/{id}     (in-memory → migrate to Firestore)
+perks/{perkId}         (in-memory → migrate to Firestore)
 ```
 
 ### Security Rules
@@ -572,12 +775,17 @@ See `firestore.rules`:
 - [x] Google Sign-In wired on iOS/Android (native Google SDK + Firebase credential)
 - [x] Apple Sign-In wired on iOS (expo-apple-authentication + Firebase OAuthProvider)
 - [x] Social sign-in on signup screen (Google + Apple)
+- [x] Feature flag system (`lib/feature-flags.ts` + `services/rollout.ts`)
+- [x] Council governance system (hooks, routes, admin panels, integration tests)
+- [x] Push notification hook (`usePushNotifications.ts`) — token registration
+- [x] Platform-split image manipulation (`lib/image-manipulator.*`)
+- [x] Error/event reporting (`lib/reporting.ts`)
 - [ ] Migrate remaining in-memory Maps (wallets, notifications, perks, tickets) → Firestore
-- [ ] Push notifications (FCM token registration + notification handler)
+- [ ] Wire FCM token to backend after login (token captured, but registration call may be incomplete)
 - [ ] Offline mutation queue (AsyncStorage → sync on reconnect)
 - [ ] Geolocation filtering (geoHash stored, not queried yet)
 - [ ] Analytics (PostHog / Firebase Analytics)
-- [ ] Error monitoring (Sentry)
+- [ ] Error monitoring (Sentry — `lib/reporting.ts` is ready to wire up)
 - [ ] Deep link testing (Universal Links on iOS, App Links on Android)
 - [ ] App Store screenshots and metadata
 - [ ] WCAG accessibility audit
