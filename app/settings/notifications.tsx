@@ -26,7 +26,7 @@ export default function NotificationSettingsScreen() {
   });
 
   const toggle = (key: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
