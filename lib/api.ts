@@ -391,6 +391,12 @@ const events = {
 
   publish: (id: string) =>
     request<{ success: boolean }>('POST', `api/events/${id}/publish`),
+
+  save: (id: string) =>
+    request<{ success: boolean; eventId: string }>('POST', `api/events/${id}/save`),
+
+  unsave: (id: string) =>
+    request<{ success: boolean }>('DELETE', `api/events/${id}/save`),
 };
 
 // ---------------------------------------------------------------------------

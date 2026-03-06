@@ -72,7 +72,7 @@ export default function TransactionsScreen() {
   const colors      = useColors();
   const { userId, isAuthenticated } = useAuth();
 
-  const { data: transactions = [], isLoading } = useQuery<WalletTransaction[]>({
+  const { data: transactions = [], isLoading, error, refetch } = useQuery<WalletTransaction[]>({
     queryKey: ['/api/transactions', userId],
     queryFn: () => api.wallet.transactions(userId!),
     enabled: !!userId,
@@ -114,6 +114,18 @@ export default function TransactionsScreen() {
             <Text style={[s.backHomeBtnText, { color: colors.text }]}>Back to Discovery</Text>
           </Pressable>
         </View>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background, gap: 12, padding: 24 }}>
+        <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
+        <Text style={{ color: colors.text, fontFamily: 'Poppins_600SemiBold', fontSize: 16 }}>Something went wrong</Text>
+        <Pressable onPress={() => refetch()}>
+          <Text style={{ color: colors.primary, fontFamily: 'Poppins_500Medium', fontSize: 14 }}>Try again</Text>
+        </Pressable>
       </View>
     );
   }

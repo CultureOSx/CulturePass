@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet, TextInput, ScrollView, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
+import Head from 'expo-router/head';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
@@ -211,6 +212,7 @@ export default function SearchScreen() {
   return (
     <ErrorBoundary>
     <View style={[s.container, { paddingTop: topInset, backgroundColor: colors.background }]}>
+      <Head><title>Search Events &amp; Communities — CulturePass</title></Head>
       <View style={s.header}>
         <Pressable onPress={() => router.back()} style={[s.backBtn, { backgroundColor: colors.surface, borderColor: colors.borderLight }]} hitSlop={8}>
           <Ionicons name="chevron-back" size={24} color={colors.text} />

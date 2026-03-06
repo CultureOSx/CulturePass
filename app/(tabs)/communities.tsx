@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import { router } from 'expo-router';
+import Head from 'expo-router/head';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -271,6 +272,7 @@ export default function CommunitiesScreen() {
 
   return (
     <View style={[s.container, { paddingTop: topInset, backgroundColor: colors.background }]}>
+      <Head><title>Communities — CulturePass</title></Head>
       {/* Header */}
       <View style={[shellStyle, s.shellHorizontal]}>
         <View style={[s.header, { borderBottomColor: colors.divider }]}> 

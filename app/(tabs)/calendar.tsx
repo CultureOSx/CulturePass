@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, ScrollView, Pressable, Platform, ActivityIndica
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import Head from 'expo-router/head';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
@@ -255,7 +256,8 @@ export default function CalendarScreen() {
 
   return (
     <ErrorBoundary>
-      <View style={[s.container, { paddingTop: webTopInset, backgroundColor: Platform.OS === 'web' ? '#FFFFFF' : colors.background }]}> 
+      <View style={[s.container, { paddingTop: webTopInset, backgroundColor: Platform.OS === 'web' ? '#FFFFFF' : colors.background }]}>
+        <Head><title>Events Calendar — CulturePass</title></Head>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{

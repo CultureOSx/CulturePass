@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import Head from 'expo-router/head';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, gradients } from '@/constants/theme';
@@ -261,6 +262,7 @@ export default function LoginScreen() {
     return (
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
         <View style={[styles.container, styles.desktopWrapper]}>
+          <Head><title>Sign In — CulturePass</title></Head>
           <LinearGradient
             colors={gradients.culturepassBrand}
             start={{ x: 0, y: 0 }}
@@ -285,6 +287,7 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
       <View style={[styles.container, { paddingTop: topInset }]}>
+        <Head><title>Sign In — CulturePass</title></Head>
         <LinearGradient
           colors={gradients.culturepassBrand}
           start={{ x: 0, y: 0 }}

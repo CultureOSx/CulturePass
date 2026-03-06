@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { router } from 'expo-router';
+import Head from 'expo-router/head';
 import * as Haptics from 'expo-haptics';
 import { useState, useMemo } from 'react';
 
@@ -128,6 +129,7 @@ export default function HelpScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + webTop }]}>
+      <Head><title>Help Centre — CulturePass</title></Head>
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>

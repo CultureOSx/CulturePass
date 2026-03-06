@@ -49,22 +49,26 @@ export default function NotificationsScreen() {
 
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ['/api/notifications', userId],
+    queryFn: () => apiRequest('GET', `/api/notifications/${userId}`).then(r => r.json()) as Promise<Notification[]>,
     enabled: !!userId,
   });
 
   const markReadMutation = useMutation({
     mutationFn: async (notifId: string) => { await apiRequest('PUT', `/api/notifications/${notifId}/read`); },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['/api/notifications', userId] }),
+    onError: () => Alert.alert('Error', 'Could not mark notification as read. Please try again.'),
   });
 
   const markAllReadMutation = useMutation({
     mutationFn: async () => { await apiRequest('PUT', `/api/notifications/${userId}/read-all`); },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['/api/notifications', userId] }),
+    onError: () => Alert.alert('Error', 'Could not mark all as read. Please try again.'),
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (notifId: string) => { await apiRequest('DELETE', `/api/notifications/${notifId}`); },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['/api/notifications', userId] }),
+    onError: () => Alert.alert('Error', 'Could not delete notification. Please try again.'),
   });
 
   const resolveTypeColor = (colorKey: 'info' | 'accent' | 'secondary' | 'success' | 'warning' | 'primary'): string => {

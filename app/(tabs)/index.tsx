@@ -11,6 +11,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
+import Head from 'expo-router/head';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -626,7 +627,8 @@ export default function HomeScreen() {
 
   return (
     <ErrorBoundary>
-    <View style={[styles.container, { paddingTop: topInset }]}> 
+    <View style={[styles.container, { paddingTop: topInset }]}>
+      <Head><title>Discover Cultural Events — CulturePass</title></Head>
       <View style={styles.topBar}>
         {/* Scroll-reactive frosted glass background (iOS only) */}
         {Platform.OS === 'ios' && (

@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import Head from 'expo-router/head';
 import * as Haptics from 'expo-haptics';
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -158,7 +159,7 @@ export default function WalletScreen() {
     pro:     { label: 'Pro',      colors: [colors.success, colors.primary],                icon: 'briefcase' },
   }), [colors]);
 
-  const { data: ticketsData = [], isLoading } = useQuery<WalletTicket[]>({
+  const { data: ticketsData = [], isLoading, error: ticketsError, refetch: refetchTickets } = useQuery<WalletTicket[]>({
     queryKey: ['tickets', 'wallet', userId],
     queryFn: async () => {
       const tickets = await api.tickets.forUser(userId!);
@@ -188,6 +189,7 @@ export default function WalletScreen() {
   return (
     <AuthGuard icon="wallet-outline" title="My Wallet" message="Sign in to access your wallet, tickets, and rewards.">
       <View style={[s.container, { paddingTop: topInset, backgroundColor: colors.background }]}>
+        <Head><title>My Wallet — CulturePass</title></Head>
         {/* Header */}
         <View style={s.header}>
           <Pressable onPress={() => router.back()} style={[s.backBtn, { backgroundColor: colors.surface }]}>
@@ -331,7 +333,15 @@ export default function WalletScreen() {
 
           {/* Ticket list */}
           <View style={s.ticketList}>
-            {isLoading ? (
+            {ticketsError ? (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background, gap: 12, padding: 24 }}>
+                <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
+                <Text style={{ color: colors.text, fontFamily: 'Poppins_600SemiBold', fontSize: 16 }}>Something went wrong</Text>
+                <Pressable onPress={() => refetchTickets()}>
+                  <Text style={{ color: colors.primary, fontFamily: 'Poppins_500Medium', fontSize: 14 }}>Try again</Text>
+                </Pressable>
+              </View>
+            ) : isLoading ? (
               <View style={s.emptyState}>
                 <ActivityIndicator color={colors.primary} />
               </View>

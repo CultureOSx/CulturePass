@@ -37,6 +37,7 @@ export interface User {
   ethnicityText?: string;
   languages?: string[];
   communities?: string[];
+  savedEvents?: string[];
   interestCategoryIds?: string[];
   followersCount?: number;
   followingCount?: number;
