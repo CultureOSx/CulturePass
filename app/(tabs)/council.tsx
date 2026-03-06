@@ -26,7 +26,7 @@ const ALERT_LABELS: Record<string, string> = {
 
 export default function CouncilTabScreen() {
   return <CouncilDirectoryScreen />;
-}
+// ...existing code...
 
 function CouncilDirectoryScreen() {
   const { isAuthenticated } = useAuth();
@@ -35,7 +35,7 @@ function CouncilDirectoryScreen() {
   const topInset = Platform.OS === 'web' ? 0 : insets.top;
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const { data, isLoading, error, refetch } = useQuery<{ councils: Record<string, unknown>[]; hasNextPage: boolean }>({
+  const { data, isLoading, error, refetch } = useQuery<CouncilListResponse>({
     queryKey: ['/api/council/list', search, page],
     queryFn: () => api.council.list({ q: search, sortBy: 'name', sortDir: 'asc', verificationStatus: 'verified', page, pageSize: 30 }),
   });
@@ -95,19 +95,17 @@ function CouncilDirectoryScreen() {
 interface CouncilRecord {
   id: string;
   name: string;
-  state?: string;
-  suburb?: string;
-  country?: string;
-  description?: string;
-  verificationStatus?: string;
-  lgaCode?: string;
-  postcode?: string;
-  websiteUrl?: string;
-  email?: string;
-  phone?: string;
+  [key: string]: unknown;
 }
 
-function CouncilCard({ council, isAuthenticated, colors }: { council: CouncilRecord; isAuthenticated: boolean; colors: ReturnType<typeof useColors> }) {
+type CouncilCardProps = {
+  council: CouncilRecord;
+  isAuthenticated: boolean;
+  colors: ReturnType<typeof useColors>;
+};
+
+function CouncilCard({ council, isAuthenticated, colors }: CouncilCardProps) {
+
   const [showDetails, setShowDetails] = useState(false);
   const [claiming, setClaiming] = useState(false);
   const [claimEmail, setClaimEmail] = useState('');
@@ -118,11 +116,11 @@ function CouncilCard({ council, isAuthenticated, colors }: { council: CouncilRec
 
   const handleFollow = async () => {
     if (!isAuthenticated) {
-      Alert.alert('Sign in required', 'Please sign in to follow councils.');
+      alert('Sign in required. Please sign in to follow councils.');
       return;
     }
     await api.council.follow(council.id);
-    Alert.alert('Following', `You are now following ${council.name}.`);
+    alert(`You are now following ${council.name}.`);
   };
 
   const handleClaim = async () => {
@@ -245,6 +243,11 @@ function CouncilCard({ council, isAuthenticated, colors }: { council: CouncilRec
 }
 
 interface SubItem { id: string; [key: string]: unknown }
+
+interface CouncilListResponse {
+  councils: CouncilRecord[];
+  hasNextPage: boolean;
+}
 
 function CouncilEvents({ councilId, colors }: { councilId: string; colors: ReturnType<typeof useColors> }) {
   const { data, isLoading } = useQuery<SubItem[]>({
@@ -575,3 +578,5 @@ const styles = StyleSheet.create({
   listTitle: { fontSize: 13, fontFamily: 'Poppins_700Bold' },
   listSub: { fontSize: 12, fontFamily: 'Poppins_400Regular' },
 });
+// Add missing closing brace for file
+}

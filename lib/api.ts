@@ -156,6 +156,7 @@ export interface CouncilData {
   logoUrl?: string;
   bannerUrl?: string;
   socialLinks?: Partial<Record<'facebook' | 'instagram' | 'linkedin' | 'youtube', string>>;
+  [key: string]: unknown;
   emergencyNumbers?: Array<{ label: string; phone: string }>;
 }
 
