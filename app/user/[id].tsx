@@ -25,14 +25,16 @@ import UserProfileDetails from '@/components/user/UserProfileDetails';
 import UserProfileIdentity from '@/components/user/UserProfileIdentity';
 import { SOCIAL_ICONS, TIER_CONFIG, formatMemberDate, getInitials } from '@/components/user/profileUtils';
 import { CultureTokens } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 export default function UserProfileScreen() {
   const { id } = useLocalSearchParams();
   const insets = useSafeAreaInsets();
+  const colors = useColors();
   const topInset    = Platform.OS === 'web' ? 0 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
 
-  const { data: user, isLoading } = useQuery<User>({
+  const { data: user, isLoading, error } = useQuery<User>({
     queryKey: ['/api/users', id as string],
     enabled: !!id,
   });
@@ -75,13 +77,13 @@ export default function UserProfileScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <LinearGradient
           colors={[CultureTokens.indigo, '#1a0533', '#0a2a2a']}
           style={[styles.hero, { paddingTop: topInset + 8, justifyContent: 'center', alignItems: 'center', minHeight: 340 }]}
         >
           <ActivityIndicator size="large" color={CultureTokens.teal} />
-          <Text style={{ color: colors.textMuted, marginTop: 12, fontFamily: 'Poppins_400Regular', fontSize: 13 }}>
+          <Text style={{ color: colors.textSecondary, marginTop: 12, fontFamily: 'Poppins_400Regular', fontSize: 13 }}>
             Loading profile...
           </Text>
         </LinearGradient>
@@ -89,20 +91,27 @@ export default function UserProfileScreen() {
     );
   }
 
-  if (!user) {
+  if (error || !user) {
     return (
-      <View style={[styles.container, styles.centered]}>
-        <Ionicons name="person-outline" size={52} color={colors.textMuted} />
-        <Text style={[styles.errorText, { marginTop: 14 }]}>Profile not found</Text>
-        <Pressable style={styles.goBackButton} onPress={handleBack}>
-          <Text style={styles.goBackButtonText}>Go Back</Text>
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+        <Ionicons name="person-outline" size={52} color={colors.textSecondary} />
+        <Text style={[styles.errorText, { color: colors.textSecondary, marginTop: 14 }]}>
+          {error ? 'Failed to load profile' : 'Profile not found'}
+        </Text>
+        <Pressable
+          style={[styles.goBackButton, { backgroundColor: colors.primary }]}
+          onPress={handleBack}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <Text style={[styles.goBackButtonText, { color: colors.textInverse }]}>Go Back</Text>
         </Pressable>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: bottomInset + 52 }}
@@ -140,12 +149,12 @@ export default function UserProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1 },
   centered:  { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-  errorText:        { fontSize: 16, fontFamily: 'Poppins_500Medium', color: '#94A3B8' },
-  goBackButton:     { marginTop: 16, paddingHorizontal: 24, paddingVertical: 11, borderRadius: 14, backgroundColor: '#7C3AED' },
-  goBackButtonText: { fontSize: 15, fontFamily: 'Poppins_600SemiBold', color: '#FFF' },
+  errorText:        { fontSize: 16, fontFamily: 'Poppins_500Medium' },
+  goBackButton:     { marginTop: 16, paddingHorizontal: 24, paddingVertical: 11, borderRadius: 14 },
+  goBackButtonText: { fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
 
   hero: { paddingBottom: 30, overflow: 'hidden' },
 });

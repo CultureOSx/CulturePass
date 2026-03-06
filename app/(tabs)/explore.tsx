@@ -76,6 +76,8 @@ export default function ExploreScreen() {
         categoryKey="category"
         items={browseItems}
         isLoading={isLoading}
+        error={error}
+        onRetry={refetch}
         promotedItems={promotedItems}
         promotedTitle="Featured Events"
         onItemPress={handleItemPress}

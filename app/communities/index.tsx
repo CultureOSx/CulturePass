@@ -18,13 +18,23 @@ const COMMUNITY_CATEGORIES: CategoryFilter[] = [
 ];
 
 export default function CommunitiesScreen() {
-  const { data: communities = [], isLoading, isRefetching, refetch } = useQuery({
+  const { data: communities = [], isLoading, isRefetching, refetch, error } = useQuery({
     queryKey: ['/api/communities'],
     queryFn: () => api.communities.list(),
   });
 
+  type CommunityItem = {
+    id: string;
+    name: string;
+    communityType?: string;
+    description?: string;
+    coverImage?: string;
+    isPromoted?: boolean;
+    memberCount?: number;
+  };
+
   const items: BrowseItem[] = useMemo(() =>
-    communities.map((c: any) => ({
+    (communities as CommunityItem[]).map((c) => ({
       id: c.id,
       title: c.name,
       subtitle: c.communityType?.toUpperCase(),
@@ -52,6 +62,8 @@ export default function CommunitiesScreen() {
       categoryKey="communityType"
       items={items}
       isLoading={isLoading}
+      error={error}
+      onRetry={refetch}
       promotedItems={promoted}
       promotedTitle="Featured"
       onItemPress={handleItemPress}

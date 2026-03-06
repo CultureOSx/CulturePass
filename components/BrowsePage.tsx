@@ -39,6 +39,8 @@ interface BrowsePageProps {
   categoryKey?: string;
   items: BrowseItem[];
   isLoading: boolean;
+  error?: Error | null;
+  onRetry?: () => void;
   promotedItems?: BrowseItem[];
   promotedTitle?: string;
   onItemPress: (item: BrowseItem) => void;
@@ -56,6 +58,8 @@ export default function BrowsePage({
   categoryKey = 'category',
   items,
   isLoading,
+  error,
+  onRetry,
   promotedItems = [],
   promotedTitle = 'Popular',
   onItemPress,
@@ -77,6 +81,28 @@ export default function BrowsePage({
       return val === selectedCat;
     });
   }, [selectedCat, items, categoryKey]);
+
+  if (error) {
+    return (
+      <View style={[styles.container, { paddingTop: topInset }]}>
+        <Header title={title} accentColor={accentColor} accentIcon={accentIcon} />
+        <View style={styles.loadingWrap}>
+          <Ionicons name="alert-circle-outline" size={48} color={Colors.error} />
+          <Text style={[styles.loadingText, { color: Colors.text }]}>Failed to load {title.toLowerCase()}</Text>
+          {onRetry && (
+            <Pressable
+              onPress={onRetry}
+              style={[styles.retryBtn, { backgroundColor: accentColor }]}
+              accessibilityRole="button"
+              accessibilityLabel={`Retry loading ${title.toLowerCase()}`}
+            >
+              <Text style={styles.retryBtnText}>Try Again</Text>
+            </Pressable>
+          )}
+        </View>
+      </View>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -124,7 +150,7 @@ export default function BrowsePage({
                       <Image source={{ uri: item.imageUrl }} style={styles.promoImage} contentFit="cover" transition={200} />
                     ) : (
                       <View style={[styles.promoImage, { backgroundColor: accentColor + '15', alignItems: 'center', justifyContent: 'center' }]}>
-                        <Ionicons name={accentIcon as any} size={28} color={accentColor} />
+                        <Ionicons name={accentIcon as never} size={28} color={accentColor} />
                       </View>
                     )}
                     <View style={styles.promoInfo}>
@@ -180,7 +206,7 @@ export default function BrowsePage({
 
           {filtered.length === 0 ? (
             <View style={styles.emptyWrap}>
-              <Ionicons name={emptyIcon as any} size={48} color={Colors.textTertiary} />
+              <Ionicons name={emptyIcon as never} size={48} color={Colors.textTertiary} />
               <Text style={styles.emptyText}>{emptyMessage}</Text>
             </View>
           ) : (
@@ -194,7 +220,7 @@ export default function BrowsePage({
                     <Image source={{ uri: item.imageUrl }} style={styles.cardImage} contentFit="cover" transition={200} />
                   ) : (
                     <View style={[styles.cardImage, { backgroundColor: accentColor + '15', alignItems: 'center', justifyContent: 'center' }]}>
-                      <Ionicons name={accentIcon as any} size={24} color={accentColor} />
+                      <Ionicons name={accentIcon as never} size={24} color={accentColor} />
                     </View>
                   )}
                   <View style={styles.cardInfo}>
@@ -242,12 +268,14 @@ function Header({ title, accentColor, accentIcon }: { title: string; accentColor
         onPress={() => { if (router.canGoBack()) router.back(); else router.replace('/'); }}
         style={styles.backBtn}
         hitSlop={10}
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
       >
         <Ionicons name="chevron-back" size={22} color={Colors.text} />
       </Pressable>
       <View style={styles.headerCenter}>
         <View style={[styles.headerIcon, { backgroundColor: accentColor + '15' }]}>
-          <Ionicons name={accentIcon as any} size={16} color={accentColor} />
+          <Ionicons name={accentIcon as never} size={16} color={accentColor} />
         </View>
         <Text style={styles.headerTitle}>{title}</Text>
       </View>
@@ -255,6 +283,8 @@ function Header({ title, accentColor, accentIcon }: { title: string; accentColor
         style={styles.backBtn}
         hitSlop={10}
         onPress={() => router.push('/search')}
+        accessibilityRole="button"
+        accessibilityLabel="Search"
       >
         <Ionicons name="search-outline" size={20} color={Colors.text} />
       </Pressable>
@@ -408,6 +438,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Poppins_500Medium',
     color: Colors.textTertiary,
+  },
+  retryBtn: {
+    marginTop: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  retryBtnText: {
+    fontSize: 14,
+    fontFamily: 'Poppins_600SemiBold',
+    color: '#FFF',
   },
   card: {
     flexDirection: 'row',
