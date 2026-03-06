@@ -292,7 +292,7 @@ export default function HomeScreen() {
           ),
         };
       })
-      .filter((entry: any): entry is { event: EventData; distanceKm: number } => Boolean(entry))
+      .filter((entry): entry is { event: EventData; distanceKm: number } => Boolean(entry))
       .sort((a: { distanceKm: number }, b: { distanceKm: number }) => a.distanceKm - b.distanceKm)
       .slice(0, 12)
         .map((entry) => ({ ...entry.event, distanceKm: entry.distanceKm }));
@@ -513,17 +513,17 @@ export default function HomeScreen() {
                   style={styles.webSearchInput}
                 />
                 {webSearch.length > 0 && (
-                  <Pressable onPress={() => setWebSearch('')} hitSlop={8}>
+                  <Pressable onPress={() => setWebSearch('')} hitSlop={8} accessibilityRole="button" accessibilityLabel="Clear search">
                     <Ionicons name="close-circle" size={16} color="#8F9CBC" />
                   </Pressable>
                 )}
               </View>
 
               <View style={[styles.webTopActions, isCompactWeb && styles.webTopActionsCompact]}>
-                <Pressable style={styles.webIconBtn} onPress={openNotifications}>
+                <Pressable style={styles.webIconBtn} onPress={openNotifications} accessibilityRole="button" accessibilityLabel="Notifications">
                   <Ionicons name="notifications-outline" size={19} color="#EAF0FF" />
                 </Pressable>
-                <Pressable style={styles.webIconBtn} onPress={() => pushSafe('/map')}>
+                <Pressable style={styles.webIconBtn} onPress={() => pushSafe('/map')} accessibilityRole="button" accessibilityLabel="Events map">
                   <Ionicons name="map-outline" size={19} color="#EAF0FF" />
                 </Pressable>
                 {isAuthenticated ? (
@@ -776,19 +776,18 @@ export default function HomeScreen() {
         )}
 
         {!discoverLoading && !featuredEvent && popularEvents.length === 0 && allActivities.length === 0 && allCommunities.length === 0 && spotlights.length === 0 && (
-          <View style={[styles.emptyStateCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}> 
+          <View style={[styles.emptyStateCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
             <Ionicons name="compass-outline" size={42} color={colors.textTertiary} />
-            <Text style={[styles.emptyStateTitle, { color: colors.text }]}>No events or activities found.</Text>
-            <Text style={[styles.emptyStateSub, { color: colors.textSecondary }]}>Try changing your city, check council events, or pull to refresh.</Text>
-            {/* Placeholder grid for empty state */}
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginTop: 18, justifyContent: 'center' }}>
-              {[...Array(4)].map((_, i) => (
-                <View key={i} style={{ width: 180, height: 120, backgroundColor: colors.surfaceSecondary, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.borderLight }}>
-                  <Ionicons name="calendar-outline" size={32} color={colors.textTertiary} />
-                  <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 8 }}>Event coming soon</Text>
-                </View>
-              ))}
-            </View>
+            <Text style={[styles.emptyStateTitle, { color: colors.text }]}>No events found in {state.city || 'your area'}</Text>
+            <Text style={[styles.emptyStateSub, { color: colors.textSecondary }]}>Try changing your city or pull to refresh.</Text>
+            <Pressable
+              onPress={() => refetch()}
+              style={[styles.emptyRetryBtn, { backgroundColor: colors.primary }]}
+              accessibilityRole="button"
+              accessibilityLabel="Refresh content"
+            >
+              <Text style={[styles.emptyRetryText, { color: colors.textInverse }]}>Refresh</Text>
+            </Pressable>
           </View>
         )}
 
@@ -1013,9 +1012,11 @@ export default function HomeScreen() {
             style={({ pressed }) => [
               styles.plusBanner,
               pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] },
-              Platform.OS === 'web' && { cursor: 'pointer' as any },
+              Platform.OS === 'web' && { cursor: 'pointer' as never },
             ]}
             onPress={() => router.push('/membership/upgrade')}
+            accessibilityRole="button"
+            accessibilityLabel="Explore CulturePass PRO membership"
           >
             <LinearGradient
               colors={['#111111', '#1A1A24']}
@@ -1045,9 +1046,11 @@ export default function HomeScreen() {
             style={({ pressed }) => [
               styles.perksBanner,
               pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] },
-              Platform.OS === 'web' && { cursor: 'pointer' as any },
+              Platform.OS === 'web' && { cursor: 'pointer' as never },
             ]}
             onPress={() => router.push('/perks')}
+            accessibilityRole="button"
+            accessibilityLabel="Browse perks and benefits"
           >
             <LinearGradient
               colors={gradients.primary}
@@ -1073,9 +1076,11 @@ export default function HomeScreen() {
             style={({ pressed }) => [
               styles.exploreCta,
               pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] },
-              Platform.OS === 'web' && { cursor: 'pointer' as any },
+              Platform.OS === 'web' && { cursor: 'pointer' as never },
             ]}
             onPress={() => router.push('/allevents')}
+            accessibilityRole="button"
+            accessibilityLabel="Explore all events"
           >
             <View style={styles.exploreCtaIcon}>
               <Ionicons name="compass" size={24} color="#007AFF" />
@@ -1290,6 +1295,16 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Poppins_400Regular',
     textAlign: 'center',
+  },
+  emptyRetryBtn: {
+    marginTop: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 11,
+    borderRadius: 14,
+  },
+  emptyRetryText: {
+    fontSize: 14,
+    fontFamily: 'Poppins_600SemiBold',
   },
   bannerWrap: {
     paddingHorizontal: 20,
