@@ -17,6 +17,13 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useLayout } from '@/hooks/useLayout';
 import { useAuth } from "@/lib/auth"
 
+interface TicketRecord    { eventId: string }
+interface RsvpRecord      { eventId: string }
+interface LikeRecord      { eventId: string }
+interface CouncilSubRecord{ councilId: string }
+interface InterestRecord  { interestTag: string }
+type EventDataExtended    = EventData & { councilId?: string };
+
 const DAYS   = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -83,27 +90,27 @@ export default function CalendarScreen() {
   });
 
   // Fetch user tickets
-  const { data: tickets = [] } = useQuery<any[]>({
+  const { data: tickets = [] } = useQuery<TicketRecord[]>({
     queryKey: ['/api/tickets', userId],
     enabled: !!userId,
   })
   // Fetch user RSVPs
-  const { data: rsvps = [] } = useQuery<any[]>({
+  const { data: rsvps = [] } = useQuery<RsvpRecord[]>({
     queryKey: ['/api/user_event_rsvp', userId],
     enabled: !!userId,
   })
   // Fetch user likes
-  const { data: likes = [] } = useQuery<any[]>({
+  const { data: likes = [] } = useQuery<LikeRecord[]>({
     queryKey: ['/api/user_event_likes', userId],
     enabled: !!userId,
   })
   // Fetch council subs
-  const { data: councilSubs = [] } = useQuery<any[]>({
+  const { data: councilSubs = [] } = useQuery<CouncilSubRecord[]>({
     queryKey: ['/api/user_council_subscriptions', userId],
     enabled: !!userId,
   })
   // Fetch interests
-  const { data: interests = [] } = useQuery<any[]>({
+  const { data: interests = [] } = useQuery<InterestRecord[]>({
     queryKey: ['/api/user_interests', userId],
     enabled: !!userId,
   })
@@ -127,25 +134,25 @@ export default function CalendarScreen() {
   const [showMap, setShowMap] = useState(false)
 
   const filteredEvents = useMemo(() => {
-    let events = allEvents
+    let events: EventDataExtended[] = allEvents
     if (filter !== "All") {
-      events = events.filter(e => e.category === filter || (e as any).councilId && filter === "Council")
+      events = events.filter(e => e.category === filter || (e.councilId != null && filter === "Council"))
     }
     if (tab === "My Events" && isAuthenticated) {
-      const rsvpIds = new Set((rsvps as any[]).map((r: any) => r.eventId))
+      const rsvpIds = new Set(rsvps.map(r => r.eventId))
       events = events.filter(e => rsvpIds.has(e.id))
     }
     if (tab === "Tickets" && isAuthenticated) {
-      const ticketIds = new Set((tickets as any[]).map((t: any) => t.eventId))
+      const ticketIds = new Set(tickets.map(t => t.eventId))
       events = events.filter(e => ticketIds.has(e.id))
     }
     if (tab === "Council" && isAuthenticated) {
-      const councilIds = new Set((councilSubs as any[]).map((s: any) => s.councilId))
-      events = events.filter(e => (e as any).councilId && councilIds.has((e as any).councilId))
+      const councilIds = new Set(councilSubs.map(s => s.councilId))
+      events = events.filter(e => e.councilId != null && councilIds.has(e.councilId))
     }
     if (tab === "Interests" && isAuthenticated) {
-      const likeIds = new Set((likes as any[]).map((l: any) => l.eventId))
-      const interestTags = new Set((interests as any[]).map((i: any) => i.interestTag))
+      const likeIds = new Set(likes.map(l => l.eventId))
+      const interestTags = new Set(interests.map(i => i.interestTag))
       events = events.filter(e => likeIds.has(e.id) || (e.tags && e.tags.some((tag: string) => interestTags.has(tag))))
     }
     return events
@@ -204,11 +211,11 @@ export default function CalendarScreen() {
 
   // Civic reminders (council events in current month)
   const civicReminders = useMemo(() => {
-    return filteredEvents.filter(e => {
+    return (filteredEvents as EventDataExtended[]).filter(e => {
       const eventDate = toSafeDateKey(e.date);
       if (!eventDate) return false;
       const dateObj = new Date(eventDate + 'T00:00:00');
-      return (e.category === 'council' || e.category === 'civic' || (e as any).councilId) &&
+      return (e.category === 'council' || e.category === 'civic' || e.councilId != null) &&
         dateObj.getMonth() === currentMonth && dateObj.getFullYear() === currentYear;
     }).map(e => ({
       id: e.id,
@@ -278,7 +285,7 @@ export default function CalendarScreen() {
               </Text>
             </View>
             {!isCurrentMonthToday && (
-              <Pressable style={[s.todayBtn, { backgroundColor: colors.primary }]} onPress={goToday}>
+              <Pressable style={[s.todayBtn, { backgroundColor: colors.primary }]} onPress={goToday} accessibilityRole="button" accessibilityLabel="Jump to today">
                 <Text style={[s.todayBtnText, { color: colors.textInverse }]}>Today</Text>
               </Pressable>
             )}
@@ -307,11 +314,11 @@ export default function CalendarScreen() {
               {/* Calendar card */}
               <View style={[s.calCard, isDesktopWeb && s.calCardCompact, { backgroundColor: '#FFFFFF', borderColor: colors.borderLight, borderWidth: 1, borderRadius: 20, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 16, elevation: 4 }]}> 
                 <View style={s.monthNav}>
-                  <Pressable onPress={prevMonth} hitSlop={14} style={[s.navBtn, { backgroundColor: colors.backgroundSecondary }]}>
+                  <Pressable onPress={prevMonth} hitSlop={14} style={[s.navBtn, { backgroundColor: colors.backgroundSecondary }]} accessibilityRole="button" accessibilityLabel="Previous month">
                     <Ionicons name="chevron-back" size={18} color={colors.textSecondary} />
                   </Pressable>
                   <Text style={[s.monthText, { color: colors.text }]}>{MONTHS[currentMonth]} {currentYear}</Text>
-                  <Pressable onPress={nextMonth} hitSlop={14} style={[s.navBtn, { backgroundColor: colors.backgroundSecondary }]}>
+                  <Pressable onPress={nextMonth} hitSlop={14} style={[s.navBtn, { backgroundColor: colors.backgroundSecondary }]} accessibilityRole="button" accessibilityLabel="Next month">
                     <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
                   </Pressable>
                 </View>
@@ -343,6 +350,9 @@ export default function CalendarScreen() {
                           isSelected && { backgroundColor: '#007AFF', borderWidth: 2, borderColor: '#007AFF', shadowColor: '#007AFF', shadowOpacity: 0.12, shadowRadius: 8 },
                           isToday && !isSelected && { backgroundColor: '#E3F0FF', borderWidth: 2, borderColor: '#007AFF' },
                         ]}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${day} ${MONTHS[currentMonth]} ${currentYear}${hasEvent ? `, ${count} event${count > 1 ? 's' : ''}` : ''}${isToday ? ', today' : ''}${isSelected ? ', selected' : ''}`}
+                        accessibilityState={{ selected: isSelected }}
                       >
                         <Text style={[s.dayText, { color: dayTextColor, fontWeight: '700', textAlign: 'center' }]}> 
                           {day}
@@ -460,14 +470,14 @@ export default function CalendarScreen() {
 // ---------------------------------------------------------------------------
 // Event row
 // ---------------------------------------------------------------------------
-function EventRow({ event, colors, isAuthenticated }: { event: EventData; colors: ReturnType<typeof useColors>; isAuthenticated: boolean }) {
+function EventRow({ event, colors, isAuthenticated }: { event: EventDataExtended; colors: ReturnType<typeof useColors>; isAuthenticated: boolean }) {
   const safeDate = toSafeDateKey(event.date);
   const eventDateLabel = safeDate
     ? new Date(`${safeDate}T00:00:00`).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
     : 'Date TBA';
 
   // If event is a council event, clicking navigates to My Council
-  const isCouncilEvent = event.category === 'council' || event.category === 'Council' || event.category === 'civic';
+  const isCouncilEvent = event.category === 'council' || event.category === 'Council' || event.category === 'civic' || event.councilId != null;
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (isCouncilEvent && isAuthenticated) {
@@ -480,6 +490,8 @@ function EventRow({ event, colors, isAuthenticated }: { event: EventData; colors
     <Pressable
       onPress={handlePress}
       style={({ pressed }) => [s.eventRow, { backgroundColor: '#FFFFFF', borderColor: BorderTokens.black, borderWidth: BorderTokens.widthBold, opacity: pressed ? 0.85 : 1, shadowColor: colors.primary, shadowOpacity: pressed ? 0.18 : 0.08, shadowRadius: pressed ? 12 : 8, elevation: 2 }]}
+      accessibilityRole="button"
+      accessibilityLabel={`${event.title}, ${eventDateLabel}${event.venue ? `, ${event.venue}` : ''}`}
     >
       <Image source={{ uri: event.imageUrl }} style={s.eventImg} contentFit="cover" />
 

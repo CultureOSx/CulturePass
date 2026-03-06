@@ -267,13 +267,15 @@ export default function ProfileScreen() {
             />
             {/* Top bar */}
             <View style={s.headerTopBar}>
-              <Pressable style={[s.headerBtn, { backgroundColor: heroActionBg }]} onPress={handleShare}>
+              <Pressable style={[s.headerBtn, { backgroundColor: heroActionBg }]} onPress={handleShare} accessibilityRole="button" accessibilityLabel="Share profile">
                 <Ionicons name="share-outline" size={20} color={heroTextColor} />
               </Pressable>
               <Text style={[s.headerTitle, { color: heroTextColor }]}>Profile</Text>
               <Pressable
                 style={[s.headerBtn, { backgroundColor: heroActionBg }]}
                 onPress={() => router.push('/notifications')}
+                accessibilityRole="button"
+                accessibilityLabel={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
               >
                 <Ionicons name="notifications-outline" size={20} color={heroTextColor} />
                 {unreadCount > 0 && <View style={[s.notifDot, { backgroundColor: colors.error }]} />}
@@ -353,6 +355,8 @@ export default function ProfileScreen() {
               <Pressable
                 style={[s.editBtn, { backgroundColor: colors.textInverse }]}
                 onPress={() => router.push('/profile/edit')}
+                accessibilityRole="button"
+                accessibilityLabel="Edit profile"
               >
                 <Ionicons name="create-outline" size={16} color={colors.background} />
                 <Text style={[s.editBtnText, { color: colors.background }]}>Edit Profile</Text>
@@ -386,6 +390,8 @@ export default function ProfileScreen() {
             <Pressable
               style={[s.upgradeCta, isDesktopWeb && s.webSection, { backgroundColor: nextTier.color + '0A', borderColor: nextTier.color + '25' }]}
               onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/membership/upgrade'); }}
+              accessibilityRole="button"
+              accessibilityLabel={`Upgrade to ${nextTier.name} membership`}
             >
               <View style={[s.upgradeIconWrap, { backgroundColor: nextTier.color + '15' }]}>
                 <Ionicons name="arrow-up-circle" size={20} color={nextTier.color} />
@@ -410,6 +416,8 @@ export default function ProfileScreen() {
                 key={item.label}
                 style={[s.quickChip, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
                 onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); item.onPress(); }}
+                accessibilityRole="button"
+                accessibilityLabel={item.label}
               >
                 <View style={[s.quickIcon, { backgroundColor: item.color + '15' }]}>
                   <Ionicons name={item.icon as never} size={18} color={item.color} />
@@ -428,7 +436,7 @@ export default function ProfileScreen() {
               { num: savedEvents.length,       label: 'Saved',       onPress: () => router.push('/saved')              },
             ].map((item, i, arr) => (
               <View key={item.label} style={{ flex: 1, flexDirection: 'row' }}>
-                <Pressable style={s.statCell} onPress={item.onPress}>
+                <Pressable style={s.statCell} onPress={item.onPress} accessibilityRole="button" accessibilityLabel={`${item.num} ${item.label}`}>
                   <Text style={[s.statNum, { color: colors.text }]}>{item.num}</Text>
                   <Text style={[s.statLabel, { color: colors.textSecondary }]}>{item.label}</Text>
                 </Pressable>
@@ -615,6 +623,8 @@ export default function ProfileScreen() {
             <Pressable
               style={[s.actionBtn, { backgroundColor: colors.surface }]}
               onPress={handleSignOut}
+              accessibilityRole="button"
+              accessibilityLabel="Sign out of CulturePass"
             >
               <Ionicons name="log-out-outline" size={18} color={colors.error} />
               <Text style={[s.actionBtnText, { color: colors.error }]}>Sign Out</Text>
@@ -622,6 +632,8 @@ export default function ProfileScreen() {
             <Pressable
               style={[s.actionBtn, { backgroundColor: colors.surface }]}
               onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); handleReset(); }}
+              accessibilityRole="button"
+              accessibilityLabel="Reset app data"
             >
               <Ionicons name="refresh-outline" size={18} color={colors.error} />
               <Text style={[s.actionBtnText, { color: colors.error }]}>Reset App Data</Text>

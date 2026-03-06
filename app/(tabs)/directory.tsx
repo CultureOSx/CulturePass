@@ -83,6 +83,8 @@ function DirectoryCard({ profile, index, colors }: { profile: Profile; index: nu
         onPress={() =>
           router.push({ pathname: '/profile/[id]', params: { id: profile.id } })
         }
+        accessibilityRole="button"
+        accessibilityLabel={`${profile.name}, ${profile.entityType}${profile.city ? `, ${profile.city}` : ''}`}
       >
         {/* Header */}
         <View style={styles.cardHeader}>
@@ -178,6 +180,8 @@ function DirectoryCard({ profile, index, colors }: { profile: Profile; index: nu
           onPress={() =>
             router.push({ pathname: '/profile/[id]', params: { id: profile.id } })
           }
+          accessibilityRole="button"
+          accessibilityLabel={`View details for ${profile.name}`}
         >
           <Text style={styles.cardActionText}>View Details</Text>
           <Ionicons name="arrow-forward-circle" size={20} color={Colors.primary} />
@@ -196,7 +200,7 @@ export default function DirectoryScreen() {
   const [selectedType, setSelectedType] = useState('All');
   const [search, setSearch] = useState('');
 
-  const { data: allProfiles, isLoading } = useQuery<Profile[]>({
+  const { data: allProfiles, isLoading, error: profilesError, refetch: refetchProfiles } = useQuery<Profile[]>({
     queryKey: ['/api/profiles'],
   });
 
@@ -259,6 +263,24 @@ export default function DirectoryScreen() {
     }));
   }, [typeCounts]);
 
+  if (profilesError) {
+    return (
+      <View style={[styles.container, { paddingTop: topInset, alignItems: 'center', justifyContent: 'center', gap: 12 }]}>
+        <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
+        <Text style={[styles.emptyTitle, { color: colors.text }]}>Could not load directory</Text>
+        <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>Check your connection and try again</Text>
+        <Pressable
+          style={[styles.cardAction, { paddingVertical: 12, paddingHorizontal: 24, borderRadius: 14, backgroundColor: Colors.primaryGlow }]}
+          onPress={() => refetchProfiles()}
+          accessibilityRole="button"
+          accessibilityLabel="Retry loading directory"
+        >
+          <Text style={[styles.cardActionText, { fontSize: 14 }]}>Try Again</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { paddingTop: topInset }]}>
       {/* Header */}
@@ -279,7 +301,7 @@ export default function DirectoryScreen() {
           returnKeyType="search"
         />
         {search.length > 0 && (
-          <Pressable onPress={() => setSearch('')} hitSlop={8}>
+          <Pressable onPress={() => setSearch('')} hitSlop={8} accessibilityRole="button" accessibilityLabel="Clear search">
             <Ionicons name="close-circle" size={22} color={colors.textSecondary} />
           </Pressable>
         )}
