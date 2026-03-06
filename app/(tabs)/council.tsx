@@ -29,10 +29,13 @@ export default function CouncilTabScreen() {
 }
 
 function CouncilDirectoryScreen() {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const colors = useColors();
+  const insets = useSafeAreaInsets();
+  const topInset = Platform.OS === 'web' ? 0 : insets.top;
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useQuery<any>({
+  const { data, isLoading, error, refetch } = useQuery<{ councils: Record<string, unknown>[]; hasNextPage: boolean }>({
     queryKey: ['/api/council/list', search, page],
     queryFn: () => api.council.list({ q: search, sortBy: 'name', sortDir: 'asc', verificationStatus: 'verified', page, pageSize: 30 }),
   });
@@ -40,108 +43,199 @@ function CouncilDirectoryScreen() {
   const hasNextPage = data?.hasNextPage ?? false;
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#F4F4F8' }} contentContainerStyle={{ padding: 32, gap: 24 }}>
-      <Text style={{ fontSize: 28, fontWeight: '700', color: '#2C2A72', marginBottom: 12 }}>Council Directory</Text>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.background, paddingTop: topInset }}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 24, gap: 16 }}
+    >
+      <Text style={{ fontSize: 28, fontFamily: 'Poppins_700Bold', color: colors.text, marginBottom: 4 }}>Council Directory</Text>
       <TextInput
         value={search}
         onChangeText={text => { setSearch(text); setPage(1); }}
         placeholder="Search councils by name or suburb..."
-        style={{ backgroundColor: '#fff', borderRadius: 10, padding: 12, fontSize: 16, marginBottom: 18, borderWidth: 1, borderColor: '#E0E0E0' }}
+        placeholderTextColor={colors.textTertiary}
+        style={{ backgroundColor: colors.surface, borderRadius: 12, padding: 12, fontSize: 15, fontFamily: 'Poppins_400Regular', color: colors.text, marginBottom: 8, borderWidth: 1, borderColor: colors.borderLight }}
       />
-      {isLoading ? <ActivityIndicator size="large" color="#2C2A72" /> : null}
-      {councils.map((council: any) => (
-        <CouncilCard key={council.id} council={council} isAuthenticated={isAuthenticated} />
+      {isLoading ? (
+        <ActivityIndicator size="large" color={colors.primary} />
+      ) : error ? (
+        <View style={{ alignItems: 'center', paddingVertical: 40, gap: 12 }}>
+          <Ionicons name="alert-circle-outline" size={44} color={colors.error} />
+          <Text style={{ fontSize: 15, fontFamily: 'Poppins_600SemiBold', color: colors.text }}>Could not load councils</Text>
+          <Pressable
+            onPress={() => refetch()}
+            style={{ backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 11, borderRadius: 14 }}
+            accessibilityRole="button"
+            accessibilityLabel="Retry loading councils"
+          >
+            <Text style={{ fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: colors.textInverse }}>Try Again</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      {councils.map((council) => (
+        <CouncilCard key={String(council.id)} council={council} isAuthenticated={isAuthenticated} colors={colors} />
       ))}
-      {hasNextPage && (
-        <Button onPress={() => setPage(page + 1)} style={{ marginTop: 18 }}>Load More</Button>
+      {councils.length === 0 && !isLoading && !error && (
+        <View style={{ alignItems: 'center', paddingVertical: 40, gap: 8 }}>
+          <Ionicons name="business-outline" size={44} color={colors.textSecondary} />
+          <Text style={{ fontSize: 15, fontFamily: 'Poppins_600SemiBold', color: colors.text }}>No councils found</Text>
+        </View>
       )}
-      {page > 1 && (
-        <Button onPress={() => setPage(page - 1)} style={{ marginTop: 8 }}>Previous Page</Button>
-      )}
+      <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
+        {page > 1 && (
+          <Button onPress={() => setPage(page - 1)} style={{ flex: 1 }}>Previous</Button>
+        )}
+        {hasNextPage && (
+          <Button onPress={() => setPage(page + 1)} style={{ flex: 1 }}>Load More</Button>
+        )}
+      </View>
     </ScrollView>
   );
 }
 
-function CouncilCard({ council, isAuthenticated }: { council: any; isAuthenticated: boolean }) {
+interface CouncilRecord {
+  id: string;
+  name: string;
+  state?: string;
+  suburb?: string;
+  country?: string;
+  description?: string;
+  verificationStatus?: string;
+  lgaCode?: string;
+  postcode?: string;
+  websiteUrl?: string;
+  email?: string;
+  phone?: string;
+}
+
+function CouncilCard({ council, isAuthenticated, colors }: { council: CouncilRecord; isAuthenticated: boolean; colors: ReturnType<typeof useColors> }) {
   const [showDetails, setShowDetails] = useState(false);
   const [claiming, setClaiming] = useState(false);
   const [claimEmail, setClaimEmail] = useState('');
   const [claimRole, setClaimRole] = useState('');
   const [claimNote, setClaimNote] = useState('');
   const [claimStatus, setClaimStatus] = useState('');
+  const isVerified = council.verificationStatus === 'verified';
+
   const handleFollow = async () => {
-    if (!isAuthenticated) return alert('Sign in to follow councils.');
+    if (!isAuthenticated) {
+      Alert.alert('Sign in required', 'Please sign in to follow councils.');
+      return;
+    }
     await api.council.follow(council.id);
-    alert('Followed!');
+    Alert.alert('Following', `You are now following ${council.name}.`);
   };
+
   const handleClaim = async () => {
     setClaiming(true);
     try {
-      const res = await api.council.claim(council.id, { workEmail: claimEmail, roleTitle: claimRole, note: claimNote });
+      await api.council.claim(council.id, { workEmail: claimEmail, roleTitle: claimRole, note: claimNote });
       setClaimStatus('Claim submitted!');
-    } catch (e) {
-      setClaimStatus('Error submitting claim.');
+    } catch {
+      setClaimStatus('Error submitting claim. Please try again.');
     }
     setClaiming(false);
   };
+
   return (
     <Pressable
-      onPress={() => {
-        router.push({ pathname: '/council/[id]', params: { id: council.id } });
-      }}
-      style={{ backgroundColor: '#fff', borderRadius: 18, padding: 28, shadowColor: '#2C2A72', shadowOpacity: 0.12, shadowRadius: 12, marginBottom: 16, elevation: 2 }}
+      onPress={() => router.push({ pathname: '/council/[id]', params: { id: council.id } })}
+      style={({ pressed }) => [
+        { backgroundColor: colors.surface, borderRadius: 16, padding: 18, marginBottom: 12, borderWidth: 1, borderColor: colors.borderLight, opacity: pressed ? 0.92 : 1 },
+      ]}
       accessibilityRole="button"
       accessibilityLabel={`View details for ${council.name} council`}
     >
-      {/* ...existing code... */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Ionicons name="business" size={28} color="#2C2A72" style={{ marginRight: 8 }} />
-          <Text style={{ fontSize: 24, fontWeight: '700', color: '#2C2A72' }}>{council.name}</Text>
-          <View style={{ marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, backgroundColor: council.verificationStatus === 'verified' ? '#FF8C42' : '#E0E0E0' }}>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: council.verificationStatus === 'verified' ? '#fff' : '#636366' }}>{council.verificationStatus === 'verified' ? 'Verified' : 'Unverified'}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10, gap: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+          <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: colors.primaryGlow, alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name="business" size={22} color={colors.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 17, fontFamily: 'Poppins_700Bold', color: colors.text }} numberOfLines={2}>{council.name}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 }}>
+              <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, backgroundColor: isVerified ? colors.success + '20' : colors.surface }}>
+                <Text style={{ fontSize: 11, fontFamily: 'Poppins_600SemiBold', color: isVerified ? colors.success : colors.textSecondary }}>
+                  {isVerified ? 'Verified' : 'Unverified'}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
-        <Button onPress={handleFollow} disabled={!isAuthenticated} style={{ minWidth: 100 }}>{isAuthenticated ? 'Follow' : 'Sign in to follow'}</Button>
+        <Button onPress={handleFollow} size="sm" disabled={!isAuthenticated}>{isAuthenticated ? 'Follow' : 'Sign in'}</Button>
       </View>
-      <Text style={{ color: '#636366', marginBottom: 4, fontSize: 15 }}>{council.state} · {council.suburb} · {council.country}</Text>
-      <Text style={{ color: '#636366', marginBottom: 8, fontSize: 15 }}>{council.description}</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 8 }}>
+
+      <Text style={{ color: colors.textSecondary, marginBottom: 4, fontSize: 13, fontFamily: 'Poppins_400Regular' }}>
+        {[council.state, council.suburb, council.country].filter(Boolean).join(' · ')}
+      </Text>
+      {council.description ? (
+        <Text style={{ color: colors.textSecondary, marginBottom: 10, fontSize: 13, fontFamily: 'Poppins_400Regular' }} numberOfLines={2}>{council.description}</Text>
+      ) : null}
+
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
         {council.websiteUrl ? (
-          <Pressable onPress={() => Linking.openURL(council.websiteUrl || '')}>
-            <Text style={{ color: '#FF8C42', textDecorationLine: 'underline', fontSize: 14 }}>🌐 Website</Text>
+          <Pressable
+            onPress={() => Linking.openURL(council.websiteUrl!)}
+            accessibilityRole="link"
+            accessibilityLabel={`Visit ${council.name} website`}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
+          >
+            <Ionicons name="globe-outline" size={14} color={colors.accent} />
+            <Text style={{ color: colors.accent, fontSize: 13, fontFamily: 'Poppins_500Medium' }}>Website</Text>
           </Pressable>
         ) : null}
         {council.email ? (
-          <Pressable onPress={() => Linking.openURL(`mailto:${council.email}`)}>
-            <Text style={{ color: '#2C2A72', textDecorationLine: 'underline', fontSize: 14 }}>✉️ Email</Text>
+          <Pressable
+            onPress={() => Linking.openURL(`mailto:${council.email}`)}
+            accessibilityRole="link"
+            accessibilityLabel={`Email ${council.name}`}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
+          >
+            <Ionicons name="mail-outline" size={14} color={colors.primary} />
+            <Text style={{ color: colors.primary, fontSize: 13, fontFamily: 'Poppins_500Medium' }}>Email</Text>
           </Pressable>
         ) : null}
         {council.phone ? (
-          <Pressable onPress={() => Linking.openURL(`tel:${council.phone}`)}>
-            <Text style={{ color: '#2C2A72', textDecorationLine: 'underline', fontSize: 14 }}>📞 {council.phone}</Text>
+          <Pressable
+            onPress={() => Linking.openURL(`tel:${council.phone}`)}
+            accessibilityRole="link"
+            accessibilityLabel={`Call ${council.name}`}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
+          >
+            <Ionicons name="call-outline" size={14} color={colors.primary} />
+            <Text style={{ color: colors.primary, fontSize: 13, fontFamily: 'Poppins_500Medium' }}>{council.phone}</Text>
           </Pressable>
         ) : null}
-        <Text style={{ color: '#636366', fontSize: 14 }}>LGA: {council.lgaCode}</Text>
-        <Text style={{ color: '#636366', fontSize: 14 }}>Postcode: {council.postcode}</Text>
+        {council.lgaCode ? <Text style={{ color: colors.textTertiary, fontSize: 12, fontFamily: 'Poppins_400Regular' }}>LGA: {council.lgaCode}</Text> : null}
+        {council.postcode ? <Text style={{ color: colors.textTertiary, fontSize: 12, fontFamily: 'Poppins_400Regular' }}>{council.postcode}</Text> : null}
       </View>
-      <Button onPress={() => setShowDetails((v: boolean) => !v)} style={{ marginBottom: 8, marginTop: 4 }}>{showDetails ? 'Hide Details' : 'Show Details'}</Button>
+
+      <Button
+        onPress={() => setShowDetails(v => !v)}
+        variant="outline"
+        size="sm"
+        style={{ marginBottom: 8 }}
+      >
+        {showDetails ? 'Hide Details' : 'Show Details'}
+      </Button>
+
       {showDetails && (
-        <View style={{ marginTop: 12 }}>
-          <Text style={{ fontWeight: '600', color: '#2C2A72', marginBottom: 4, fontSize: 16 }}>Events & Info</Text>
-          <CouncilEvents councilId={council.id} />
-          <CouncilAlerts councilId={council.id} />
-          <CouncilFacilities councilId={council.id} />
-          <CouncilGrants councilId={council.id} />
-          <CouncilLinks councilId={council.id} />
-          <Button onPress={() => setClaiming(true)} style={{ marginTop: 12 }}>{claiming ? 'Submitting...' : 'Claim Council'}</Button>
+        <View style={{ marginTop: 10, gap: 12 }}>
+          <Text style={{ fontFamily: 'Poppins_700Bold', color: colors.text, fontSize: 15 }}>Events & Info</Text>
+          <CouncilEvents councilId={council.id} colors={colors} />
+          <CouncilAlerts councilId={council.id} colors={colors} />
+          <CouncilFacilities councilId={council.id} colors={colors} />
+          <CouncilGrants councilId={council.id} colors={colors} />
+          <CouncilLinks councilId={council.id} colors={colors} />
+          <Button onPress={() => setClaiming(c => !c)} variant="ghost" size="sm">
+            {claiming ? 'Cancel Claim' : 'Claim this Council'}
+          </Button>
           {claiming && (
-            <View style={{ marginTop: 8 }}>
-              <TextInput value={claimEmail} onChangeText={setClaimEmail} placeholder="Work Email" style={{ backgroundColor: '#F4F4F8', borderRadius: 8, padding: 8, marginBottom: 6 }} />
-              <TextInput value={claimRole} onChangeText={setClaimRole} placeholder="Role Title" style={{ backgroundColor: '#F4F4F8', borderRadius: 8, padding: 8, marginBottom: 6 }} />
-              <TextInput value={claimNote} onChangeText={setClaimNote} placeholder="Note (optional)" style={{ backgroundColor: '#F4F4F8', borderRadius: 8, padding: 8, marginBottom: 6 }} />
-              <Button onPress={handleClaim}>Submit Claim</Button>
-              {claimStatus ? <Text style={{ color: '#2C2A72', marginTop: 6 }}>{claimStatus}</Text> : null}
+            <View style={{ gap: 8 }}>
+              <TextInput value={claimEmail} onChangeText={setClaimEmail} placeholder="Work Email" placeholderTextColor={colors.textTertiary} style={{ backgroundColor: colors.backgroundSecondary, borderRadius: 10, padding: 10, fontSize: 14, fontFamily: 'Poppins_400Regular', color: colors.text, borderWidth: 1, borderColor: colors.borderLight }} />
+              <TextInput value={claimRole} onChangeText={setClaimRole} placeholder="Role Title" placeholderTextColor={colors.textTertiary} style={{ backgroundColor: colors.backgroundSecondary, borderRadius: 10, padding: 10, fontSize: 14, fontFamily: 'Poppins_400Regular', color: colors.text, borderWidth: 1, borderColor: colors.borderLight }} />
+              <TextInput value={claimNote} onChangeText={setClaimNote} placeholder="Note (optional)" placeholderTextColor={colors.textTertiary} style={{ backgroundColor: colors.backgroundSecondary, borderRadius: 10, padding: 10, fontSize: 14, fontFamily: 'Poppins_400Regular', color: colors.text, borderWidth: 1, borderColor: colors.borderLight }} />
+              <Button onPress={handleClaim} loading={claiming}>Submit Claim</Button>
+              {claimStatus ? <Text style={{ color: claimStatus.startsWith('Error') ? colors.error : colors.success, fontFamily: 'Poppins_500Medium', fontSize: 13 }}>{claimStatus}</Text> : null}
             </View>
           )}
         </View>
@@ -150,100 +244,106 @@ function CouncilCard({ council, isAuthenticated }: { council: any; isAuthenticat
   );
 }
 
-function CouncilEvents({ councilId }: { councilId: string }) {
-  const { data, isLoading } = useQuery({
+interface SubItem { id: string; [key: string]: unknown }
+
+function CouncilEvents({ councilId, colors }: { councilId: string; colors: ReturnType<typeof useColors> }) {
+  const { data, isLoading } = useQuery<SubItem[]>({
     queryKey: ['/api/council/events', councilId],
     queryFn: () => api.council.events(councilId),
   });
-  if (isLoading) return <ActivityIndicator size="small" color="#2C2A72" />;
-  if (!data || data.length === 0) return <Text style={{ color: '#636366' }}>No events found.</Text>;
+  if (isLoading) return <ActivityIndicator size="small" color={colors.primary} />;
+  if (!data || data.length === 0) return <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular' }}>No events found.</Text>;
   return (
-    <View style={{ marginTop: 8 }}>
-      {data.map((event: any) => (
-        <View key={event.id} style={{ backgroundColor: '#F4F4F8', borderRadius: 8, padding: 10, marginBottom: 6 }}>
-          <Text style={{ fontWeight: '600', color: '#2C2A72' }}>{event.title}</Text>
-          <Text style={{ color: '#636366' }}>{event.date} · {event.city}</Text>
-          <Text style={{ color: '#636366' }}>{event.description}</Text>
+    <View style={{ gap: 6 }}>
+      {data.map((event) => (
+        <View key={event.id} style={{ backgroundColor: colors.backgroundSecondary, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: colors.borderLight }}>
+          <Text style={{ fontFamily: 'Poppins_600SemiBold', color: colors.text, fontSize: 13 }}>{String(event.title ?? '')}</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular' }}>{String(event.date ?? '')} · {String(event.city ?? '')}</Text>
         </View>
       ))}
     </View>
   );
 }
 
-function CouncilAlerts({ councilId }: { councilId: string }) {
-  const { data, isLoading } = useQuery({
+function CouncilAlerts({ councilId, colors }: { councilId: string; colors: ReturnType<typeof useColors> }) {
+  const { data, isLoading } = useQuery<SubItem[]>({
     queryKey: ['/api/council/alerts', councilId],
     queryFn: () => api.council.alerts(councilId),
   });
-  if (isLoading) return <ActivityIndicator size="small" color="#2C2A72" />;
-  if (!data || data.length === 0) return <Text style={{ color: '#636366' }}>No alerts found.</Text>;
+  if (isLoading) return <ActivityIndicator size="small" color={colors.primary} />;
+  if (!data || data.length === 0) return <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular' }}>No alerts found.</Text>;
   return (
-    <View style={{ marginTop: 8 }}>
-      <Text style={{ fontWeight: '600', color: '#2C2A72', marginBottom: 4 }}>Alerts</Text>
-      {data.map((alert: any) => (
-        <View key={alert.id} style={{ backgroundColor: '#FFF8E1', borderRadius: 8, padding: 10, marginBottom: 6 }}>
-          <Text style={{ fontWeight: '600', color: '#FF8C42' }}>{alert.title}</Text>
-          <Text style={{ color: '#636366' }}>{alert.category} · {alert.severity}</Text>
-          <Text style={{ color: '#636366' }}>{alert.description}</Text>
+    <View style={{ gap: 6 }}>
+      <Text style={{ fontFamily: 'Poppins_700Bold', color: colors.text, fontSize: 13 }}>Alerts</Text>
+      {data.map((alert) => (
+        <View key={alert.id} style={{ backgroundColor: colors.warning + '15', borderRadius: 10, padding: 10, borderWidth: 1, borderColor: colors.warning + '30' }}>
+          <Text style={{ fontFamily: 'Poppins_600SemiBold', color: colors.warning, fontSize: 13 }}>{String(alert.title ?? '')}</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular' }}>{String(alert.category ?? '')} · {String(alert.severity ?? '')}</Text>
         </View>
       ))}
     </View>
   );
 }
 
-function CouncilFacilities({ councilId }: { councilId: string }) {
-  const { data, isLoading } = useQuery({
+function CouncilFacilities({ councilId, colors }: { councilId: string; colors: ReturnType<typeof useColors> }) {
+  const { data, isLoading } = useQuery<SubItem[]>({
     queryKey: ['/api/council/facilities', councilId],
     queryFn: () => api.council.facilities(councilId),
   });
-  if (isLoading) return <ActivityIndicator size="small" color="#2C2A72" />;
-  if (!data || data.length === 0) return <Text style={{ color: '#636366' }}>No facilities found.</Text>;
+  if (isLoading) return <ActivityIndicator size="small" color={colors.primary} />;
+  if (!data || data.length === 0) return <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular' }}>No facilities found.</Text>;
   return (
-    <View style={{ marginTop: 8 }}>
-      <Text style={{ fontWeight: '600', color: '#2C2A72', marginBottom: 4 }}>Facilities</Text>
-      {data.map((facility: any) => (
-        <View key={facility.id} style={{ backgroundColor: '#E0F7FA', borderRadius: 8, padding: 10, marginBottom: 6 }}>
-          <Text style={{ fontWeight: '600', color: '#2C2A72' }}>{facility.name}</Text>
-          <Text style={{ color: '#636366' }}>{facility.category}</Text>
+    <View style={{ gap: 6 }}>
+      <Text style={{ fontFamily: 'Poppins_700Bold', color: colors.text, fontSize: 13 }}>Facilities</Text>
+      {data.map((facility) => (
+        <View key={facility.id} style={{ backgroundColor: colors.info + '10', borderRadius: 10, padding: 10, borderWidth: 1, borderColor: colors.info + '25' }}>
+          <Text style={{ fontFamily: 'Poppins_600SemiBold', color: colors.text, fontSize: 13 }}>{String(facility.name ?? '')}</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular' }}>{String(facility.category ?? '')}</Text>
         </View>
       ))}
     </View>
   );
 }
 
-function CouncilGrants({ councilId }: { councilId: string }) {
-  const { data, isLoading } = useQuery({
+function CouncilGrants({ councilId, colors }: { councilId: string; colors: ReturnType<typeof useColors> }) {
+  const { data, isLoading } = useQuery<SubItem[]>({
     queryKey: ['/api/council/grants', councilId],
     queryFn: () => api.council.grants(councilId),
   });
-  if (isLoading) return <ActivityIndicator size="small" color="#2C2A72" />;
-  if (!data || data.length === 0) return <Text style={{ color: '#636366' }}>No grants found.</Text>;
+  if (isLoading) return <ActivityIndicator size="small" color={colors.primary} />;
+  if (!data || data.length === 0) return <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular' }}>No grants found.</Text>;
   return (
-    <View style={{ marginTop: 8 }}>
-      <Text style={{ fontWeight: '600', color: '#2C2A72', marginBottom: 4 }}>Grants</Text>
-      {data.map((grant: any) => (
-        <View key={grant.id} style={{ backgroundColor: '#FFFDE7', borderRadius: 8, padding: 10, marginBottom: 6 }}>
-          <Text style={{ fontWeight: '600', color: '#FFC857' }}>{grant.title}</Text>
-          <Text style={{ color: '#636366' }}>{grant.category}</Text>
-          <Text style={{ color: '#636366' }}>{grant.description}</Text>
+    <View style={{ gap: 6 }}>
+      <Text style={{ fontFamily: 'Poppins_700Bold', color: colors.text, fontSize: 13 }}>Grants</Text>
+      {data.map((grant) => (
+        <View key={grant.id} style={{ backgroundColor: colors.gold + '10', borderRadius: 10, padding: 10, borderWidth: 1, borderColor: colors.gold + '30' }}>
+          <Text style={{ fontFamily: 'Poppins_600SemiBold', color: colors.gold, fontSize: 13 }}>{String(grant.title ?? '')}</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular' }}>{String(grant.category ?? '')}</Text>
         </View>
       ))}
     </View>
   );
 }
 
-function CouncilLinks({ councilId }: { councilId: string }) {
-  const { data, isLoading } = useQuery({
+function CouncilLinks({ councilId, colors }: { councilId: string; colors: ReturnType<typeof useColors> }) {
+  const { data, isLoading } = useQuery<SubItem[]>({
     queryKey: ['/api/council/links', councilId],
     queryFn: () => api.council.links(councilId),
   });
-  if (isLoading) return <ActivityIndicator size="small" color="#2C2A72" />;
-  if (!data || data.length === 0) return <Text style={{ color: '#636366' }}>No links found.</Text>;
+  if (isLoading) return <ActivityIndicator size="small" color={colors.primary} />;
+  if (!data || data.length === 0) return <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular' }}>No links found.</Text>;
   return (
-    <View style={{ marginTop: 8 }}>
-      <Text style={{ fontWeight: '600', color: '#2C2A72', marginBottom: 4 }}>Links</Text>
-      {data.map((link: any) => (
-        <Text key={link.id} style={{ color: '#3498DB', marginBottom: 4 }} onPress={() => Linking.openURL(link.url)}>{link.title}</Text>
+    <View style={{ gap: 6 }}>
+      <Text style={{ fontFamily: 'Poppins_700Bold', color: colors.text, fontSize: 13 }}>Links</Text>
+      {data.map((link) => (
+        <Pressable
+          key={link.id}
+          onPress={() => Linking.openURL(String(link.url ?? ''))}
+          accessibilityRole="link"
+          accessibilityLabel={String(link.title ?? 'Council link')}
+        >
+          <Text style={{ color: colors.info, fontSize: 13, fontFamily: 'Poppins_500Medium', textDecorationLine: 'underline' }}>{String(link.title ?? '')}</Text>
+        </Pressable>
       ))}
     </View>
   );
@@ -270,7 +370,7 @@ function CouncilContent() {
 
   return (
     <ErrorBoundary>
-      <View style={[styles.container, { backgroundColor: colors.background, paddingTop: Platform.OS === 'web' ? 64 : insets.top + 12 }]}> 
+      <View style={[styles.container, { backgroundColor: colors.background, paddingTop: Platform.OS === 'web' ? 0 : insets.top + 12 }]}>
         {isLoading ? (
           <View style={styles.loadingWrap}>
             <ActivityIndicator size="large" color={colors.primary} />

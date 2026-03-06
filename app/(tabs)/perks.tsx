@@ -65,7 +65,7 @@ export default function PerksTabScreen() {
   const { width, isDesktop, isTablet } = useLayout();
   const isDesktopWeb = Platform.OS === 'web' && isDesktop;
   const colors   = useColors();
-  const webTopInset = Platform.OS === 'web' ? (isDesktopWeb ? 72 : 0) : insets.top;
+  const webTopInset = Platform.OS === 'web' ? 0 : insets.top;
   const shellMaxWidth = Platform.OS === 'web'
     ? (isDesktopWeb ? 1280 : isTablet ? 1040 : width)
     : width;
@@ -74,13 +74,13 @@ export default function PerksTabScreen() {
     : undefined;
   const { userId } = useAuth();
   const { data: councilData } = useCouncil();
-  const openGrants = (councilData?.grants ?? []).filter((grant: any) => grant.status === 'open');
+  const openGrants = (councilData?.grants ?? []).filter((grant: { status?: string }) => grant.status === 'open');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
   // FIX: Track which perk ID is being redeemed so only that card shows pending
   const [redeemingPerkId, setRedeemingPerkId] = useState<string | null>(null);
 
-  const { data: perks = [], isLoading, refetch } = useQuery<Perk[]>({
+  const { data: perks = [], isLoading, error: perksError, refetch } = useQuery<Perk[]>({
     queryKey: ['/api/perks'],
     queryFn: () => api.perks.list() as Promise<Perk[]>,
   });
@@ -261,20 +261,23 @@ export default function PerksTabScreen() {
           />
 
           {openGrants.length > 0 && (
-            <View style={[s.upgradeBanner, shellStyle, { backgroundColor: colors.surface, borderColor: colors.info + '30' }]}> 
-              <View style={[s.upgradeBannerIcon, { backgroundColor: colors.info + '1A' }]}> 
+            <Pressable
+              style={[s.upgradeBanner, shellStyle, { backgroundColor: colors.surface, borderColor: colors.info + '30' }]}
+              onPress={() => router.push('/(tabs)/council')}
+              accessibilityRole="button"
+              accessibilityLabel={`View ${openGrants.length} open council grant${openGrants.length === 1 ? '' : 's'}`}
+            >
+              <View style={[s.upgradeBannerIcon, { backgroundColor: colors.info + '1A' }]}>
                 <Ionicons name="library-outline" size={18} color={colors.info} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.upgradeBannerTitle, { color: colors.text }]}>Cultural Funding</Text>
-                <Text style={[s.upgradeBannerSub, { color: colors.textSecondary }]}> 
+                <Text style={[s.upgradeBannerSub, { color: colors.textSecondary }]}>
                   {openGrants.length} local council grant{openGrants.length === 1 ? '' : 's'} available now
                 </Text>
               </View>
-              <Pressable onPress={() => router.push('/(tabs)/council')} hitSlop={8}>
-                <Ionicons name="chevron-forward" size={16} color={colors.info} />
-              </Pressable>
-            </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.info} />
+            </Pressable>
           )}
 
           {/* Section title */}
@@ -297,6 +300,19 @@ export default function PerksTabScreen() {
               <View style={s.empty}>
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={[s.emptyText, { color: colors.text }]}>Loading perks...</Text>
+              </View>
+            ) : perksError ? (
+              <View style={[s.empty, { backgroundColor: colors.surface }]}>
+                <Ionicons name="alert-circle-outline" size={44} color={colors.error} />
+                <Text style={[s.emptyText, { color: colors.text }]}>Could not load perks</Text>
+                <Pressable
+                  onPress={() => refetch()}
+                  style={[s.retryBtn, { backgroundColor: colors.primary }]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Retry loading perks"
+                >
+                  <Text style={[s.retryBtnText, { color: colors.textInverse }]}>Try Again</Text>
+                </Pressable>
               </View>
             ) : filteredPerks.length === 0 ? (
               <View style={[s.empty, { backgroundColor: colors.surface }]}>
@@ -383,6 +399,8 @@ function PerkCard({
   return (
     <Pressable
       onPress={() => router.push(`/perks/${perk.id}`)}
+      accessibilityRole="button"
+      accessibilityLabel={`${perk.title} perk. ${formattedValue}${perk.providerName ? ` from ${perk.providerName}` : ''}`}
       style={({ pressed }) => [
         s.perkCard,
         {
@@ -416,7 +434,13 @@ function PerkCard({
           <View style={[s.perkValue, { backgroundColor: CultureTokens.saffron }]}>
             <Text style={[s.perkValueText, { color: CultureTokens.indigo, fontFamily: 'Poppins_700Bold' }]}>{formattedValue}</Text>
           </View>
-          <Pressable hitSlop={8} onPress={onShare} style={[s.shareBtn, { backgroundColor: CultureTokens.teal }]}>
+          <Pressable
+            hitSlop={8}
+            onPress={onShare}
+            style={[s.shareBtn, { backgroundColor: CultureTokens.teal }]}
+            accessibilityRole="button"
+            accessibilityLabel={`Share ${perk.title}`}
+          >
             <Ionicons name="share-outline" size={17} color="#fff" />
           </Pressable>
         </View>
@@ -452,9 +476,9 @@ function PerkCard({
           </View>
         )}
         {!!perk.perUserLimit && (
-          <View style={[s.metaTag, { backgroundColor: '#2C2A72', borderColor: '#2C2A72' }]}> 
-            <Ionicons name="person" size={12} color="#FFC857" />
-            <Text style={[s.metaTagText, { color: '#FFC857', fontWeight: '700' }]}>Max {perk.perUserLimit}/user</Text>
+          <View style={[s.metaTag, { backgroundColor: CultureTokens.indigo, borderColor: CultureTokens.indigo }]}>
+            <Ionicons name="person" size={12} color={CultureTokens.gold} />
+            <Text style={[s.metaTagText, { color: CultureTokens.gold, fontFamily: 'Poppins_700Bold' }]}>Max {perk.perUserLimit}/user</Text>
           </View>
         )}
       </View>
@@ -482,6 +506,13 @@ function PerkCard({
       <Pressable
         onPress={onRedeem}
         disabled={exhausted || isPending}
+        accessibilityRole="button"
+        accessibilityLabel={
+          isPending ? 'Redeeming perk' :
+          exhausted ? 'Perk fully redeemed' :
+          needsUpgrade ? 'Upgrade to CulturePass+ to unlock' :
+          `Redeem ${perk.title}`
+        }
         style={[
           s.redeemBtn,
           needsUpgrade && { backgroundColor: colors.primaryGlow, borderWidth: 1, borderColor: colors.primary + '50' },
@@ -572,4 +603,6 @@ const s = StyleSheet.create({
 
   redeemBtn:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, paddingVertical: 14 },
   redeemBtnText:{ fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
+  retryBtn:     { marginTop: 12, paddingHorizontal: 24, paddingVertical: 11, borderRadius: 14 },
+  retryBtnText: { fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
 });

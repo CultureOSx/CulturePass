@@ -167,7 +167,7 @@ export default function CommunitiesScreen() {
   const insets  = useSafeAreaInsets();
   const colors  = useColors();
   const { width, isDesktop, isTablet } = useLayout();
-  const topInset    = isWeb ? (isDesktop ? 72 : 0) : insets.top;
+  const topInset    = isWeb ? 0 : insets.top;
   const bottomInset = isWeb ? 34 : insets.bottom;
   const shellMaxWidth = isWeb
     ? (isDesktop ? 1280 : isTablet ? 1040 : width)
@@ -180,7 +180,7 @@ export default function CommunitiesScreen() {
   const [selectedType,  setSelectedType]  = useState('all');
   const [searchFocused, setSearchFocused] = useState(false);
 
-  const { data: allProfiles, isLoading } = useQuery<Profile[]>({ queryKey: ['/api/profiles'] });
+  const { data: allProfiles, isLoading, error: profilesError, refetch: refetchProfiles } = useQuery<Profile[]>({ queryKey: ['/api/profiles'] });
   const { data: councilData } = useCouncil();
   const council = councilData?.council;
   const facilities = councilData?.facilities ?? [];
@@ -258,7 +258,7 @@ export default function CommunitiesScreen() {
     return (
       <View style={[s.container, { paddingTop: topInset, backgroundColor: colors.background }]}>
         <View style={[shellStyle, s.shellHorizontal]}>
-          <View style={[s.header, { borderBottomColor: colors.divider }]}> 
+          <View style={[s.header, { borderBottomColor: colors.divider }]}>
             <Text style={[s.title, { color: colors.text }]}>Community</Text>
           </View>
         </View>
@@ -266,6 +266,24 @@ export default function CommunitiesScreen() {
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[s.loadingText, { color: colors.textSecondary }]}>Loading Community tab...</Text>
         </View>
+      </View>
+    );
+  }
+
+  if (profilesError) {
+    return (
+      <View style={[s.container, { paddingTop: topInset, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', gap: 12 }]}>
+        <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
+        <Text style={[s.emptyTitle, { color: colors.text }]}>Could not load communities</Text>
+        <Text style={[s.emptySub, { color: colors.textSecondary }]}>Check your connection and try again</Text>
+        <Pressable
+          style={[s.clearBtn, { backgroundColor: colors.primary }]}
+          onPress={() => refetchProfiles()}
+          accessibilityRole="button"
+          accessibilityLabel="Retry loading communities"
+        >
+          <Text style={[s.clearBtnText, { color: colors.textInverse }]}>Try Again</Text>
+        </Pressable>
       </View>
     );
   }
@@ -391,6 +409,8 @@ export default function CommunitiesScreen() {
               <Pressable
                 style={[s.clearBtn, { backgroundColor: colors.primaryGlow }]}
                 onPress={() => { setSearch(''); setSelectedType('all'); }}
+                accessibilityRole="button"
+                accessibilityLabel="Clear search and filters"
               >
                 <Text style={[s.clearBtnText, { color: colors.primary }]}>Clear filters</Text>
               </Pressable>
