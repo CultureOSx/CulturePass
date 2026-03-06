@@ -68,7 +68,7 @@ function CommunityUnityIcon({ focused, activeColor, color }: { focused: boolean;
       />
     </View>
   );
-}
+// ...existing code...
 
 // ---------------------------------------------------------------------------
 // Animated tab item — icon + label + active indicator

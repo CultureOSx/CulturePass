@@ -1,3 +1,7 @@
+  // Explicit handlers for notification, map, and sign up
+  const handleNotifications = () => router.push('/notifications');
+  const handleMap = () => router.push('/map');
+  const handleSignUp = () => router.push('/(onboarding)/signup');
 import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, useColorScheme } from 'react-native';
 import { usePathname, router } from 'expo-router';
@@ -126,7 +130,7 @@ export function WebSidebar() {
 
   const navigate = (route: string) => {
     try {
-      router.navigate(route as Parameters<typeof router.navigate>[0]);
+      router.push(route as Parameters<typeof router.push>[0]);
     } catch (err) {
       if (typeof window !== 'undefined') {
         window.alert('Navigation failed. This page may not exist or is not available on web.');
@@ -260,16 +264,37 @@ export function WebSidebar() {
 
       <View style={[styles.divider, { backgroundColor: border }]} />
 
-      {/* Bottom nav */}
+      {/* Bottom nav with explicit buttons */}
       <SectionGroup>
-        {BOTTOM_NAV.map((item) => (
-          <SidebarItem key={item.route} item={item} active={isActive(item)} isDark={isDark} onPress={() => navigate(item.route)} />
-        ))}
+        <Pressable
+          aria-label="Notifications"
+          tabIndex={0}
+          style={[styles.signInBtn, { backgroundColor: '#FFE1CC', borderRadius: 10 }]}
+          onPress={handleNotifications}
+        >
+          <Ionicons name="notifications-outline" size={20} color="#FF8C42" />
+        </Pressable>
+        <Pressable
+          aria-label="Map"
+          tabIndex={0}
+          style={[styles.signInBtn, { backgroundColor: '#D7F5F1', borderRadius: 10 }]}
+          onPress={handleMap}
+        >
+          <Ionicons name="map-outline" size={20} color="#2EC4B6" />
+        </Pressable>
+        <Pressable
+          aria-label="Sign Up"
+          tabIndex={0}
+          style={[styles.signInBtn, { backgroundColor: '#FF5E5B', borderRadius: 10 }]}
+          onPress={handleSignUp}
+        >
+          <Text style={[styles.signInText, { color: '#fff' }]}>Sign Up</Text>
+        </Pressable>
       </SectionGroup>
 
       {/* User section */}
       {isAuthenticated ? (
-        <View style={[styles.userSection, { borderTopColor: border }]}>
+        <View style={[styles.userSection, { borderTopColor: border }]}> 
           {user?.avatarUrl
             ? <Image source={{ uri: user.avatarUrl }} style={styles.avatarImg} />
             : (
@@ -292,7 +317,7 @@ export function WebSidebar() {
           </Pressable>
         </View>
       ) : (
-        <View style={[styles.userSection, { borderTopColor: border }]}>
+        <View style={[styles.userSection, { borderTopColor: border }]}> 
           <Pressable style={styles.signInBtn} onPress={() => router.push('/(onboarding)/login')}>
             <LinearGradient colors={['#2C2A72', '#FF8C42']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFill} />
             <Ionicons name="person-outline" size={16} color="#fff" />
@@ -335,15 +360,17 @@ function SidebarItem({ item, active, isDark, onPress }: {
   // Memoize for performance
   const MemoSidebarItem = React.memo(() => (
     <Pressable
-      style={({ hovered }) => [
+      style={({ hovered, focused }) => [
         itemStyles.item,
         active && [itemStyles.itemActive, { backgroundColor: colors.primarySoft }],
         hovered && { backgroundColor: 'rgba(44,42,114,0.08)', transform: [{ scale: 1.04 }] },
+        focused && { outlineWidth: 2, outlineColor: colors.primary, outlineStyle: 'solid' },
       ]}
       onPress={onPress}
       accessibilityRole="menuitem"
       accessibilityState={{ selected: active }}
       aria-current={active ? 'page' : undefined}
+      tabIndex={0}
       {...(tooltip ? { title: tooltip } : {})}
     >
       {active && (
