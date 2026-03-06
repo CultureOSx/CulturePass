@@ -1,3 +1,5 @@
+import { View, Text, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useOnboarding } from '@/contexts/OnboardingContext';
@@ -6,6 +8,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { api } from '@/lib/api';
 import type { EventData } from '@/shared/schema';
 import { Colors } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 const eventCategories: CategoryFilter[] = [
   { label: 'All', icon: 'calendar', color: Colors.text },
@@ -33,7 +36,7 @@ export default function ExploreScreen() {
   const cityParam = Array.isArray(params.city) ? params.city[0] : params.city;
   const activeCity = cityParam || state.city;
 
-  const { data: events = [], isLoading } = useQuery<EventData[]>({
+  const { data: events = [], isLoading, error, refetch } = useQuery<EventData[]>({
     queryKey: ['/api/events', state.country, activeCity],
     queryFn: async () => {
       const data = await api.events.list({ city: activeCity, country: state.country, pageSize: 50 });

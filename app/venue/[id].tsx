@@ -11,7 +11,7 @@ import {
   Share,
   Alert,
 } from "react-native";
-import { useLocalSearchParams, router, useNavigation } from "expo-router";
+import { useLocalSearchParams, router, useNavigation, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -102,6 +102,7 @@ export default function VenueDetailScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }] }>
+      <Stack.Screen options={{ title: profile?.name ?? 'Venue' }} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}

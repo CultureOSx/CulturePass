@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, usePathname } from 'expo-router';
+import Head from 'expo-router/head';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/lib/auth';
 import { useRole } from '@/hooks/useRole';
@@ -173,6 +174,7 @@ export default function AccountSettingsScreen() {
 
   return (
     <View style={[s.container, { paddingTop: insets.top + webTop, backgroundColor: colors.background }]}>
+      <Head><title>Account Settings — CulturePass</title></Head>
 
       {/* Header */}
       <View style={s.header}>

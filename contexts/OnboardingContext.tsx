@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { api } from '@/lib/api';
 
 interface OnboardingState {
   isComplete: boolean;
@@ -22,9 +23,11 @@ interface OnboardingContextValue {
   setLanguages: (languages: string[]) => void;
   setInterests: (interests: string[]) => void;
   setSubscriptionTier: (tier: OnboardingState['subscriptionTier']) => void;
-  completeOnboarding: () => Promise<void>;
+  /** Pass userId from useAuth() to persist preferences to the backend. */
+  completeOnboarding: (userId?: string) => Promise<void>;
   resetOnboarding: () => Promise<void>;
-  updateLocation: (country: string, city: string) => Promise<void>;
+  /** Pass userId from useAuth() to persist location to the backend. */
+  updateLocation: (country: string, city: string, userId?: string) => Promise<void>;
 }
 
 const STORAGE_KEY = '@culturepass_onboarding';
@@ -49,6 +52,7 @@ const defaultContextValue: OnboardingContextValue = {
   setEthnicityText: () => {},
   setLanguages: () => {},
   setInterests: () => {},
+  setSubscriptionTier: () => {},
   completeOnboarding: async () => {},
   resetOnboarding: async () => {},
   updateLocation: async () => {},
@@ -100,12 +104,36 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     setLanguages:      (languages: string[]) => persistUpdate({ languages }),
     setInterests:      (interests: string[]) => persistUpdate({ interests }),
     setSubscriptionTier: (subscriptionTier: OnboardingState['subscriptionTier']) => persistUpdate({ subscriptionTier }),
-    completeOnboarding: () => persistUpdate({ isComplete: true }),
+    completeOnboarding: async (userId?: string) => {
+      await persistUpdate({ isComplete: true });
+      if (userId) {
+        try {
+          await api.users.update(userId, {
+            city: state.city,
+            country: state.country,
+            interests: state.interests,
+            languages: state.languages,
+            ethnicityText: state.ethnicityText,
+          });
+        } catch {
+          // Network failure — local state is set; DataSync will reconcile on next login
+        }
+      }
+    },
     resetOnboarding: async () => {
       setState(defaultState);
       await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
     },
-    updateLocation: (country: string, city: string) => persistUpdate({ country, city }),
+    updateLocation: async (country: string, city: string, userId?: string) => {
+      await persistUpdate({ country, city });
+      if (userId) {
+        try {
+          await api.users.update(userId, { city, country });
+        } catch {
+          // Network failure — local state is set
+        }
+      }
+    },
   }), [state, isLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

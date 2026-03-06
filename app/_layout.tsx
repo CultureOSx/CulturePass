@@ -3,6 +3,7 @@ import { Buffer } from "buffer";
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
+import Head from "expo-router/head";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useCallback, useEffect, useRef } from "react";
 import {
@@ -116,7 +117,18 @@ function DataSync() {
 // ---------------------------------------------------------------------------
 function RootLayoutNav() {
   return (
-    <Stack
+    <>
+      <Head>
+        <title>CulturePass — Cultural Events &amp; Communities</title>
+        <meta name="description" content="Discover cultural events, join diaspora communities, find local businesses. CulturePass connects you with cultural experiences across Australia." />
+        <meta property="og:site_name" content="CulturePass" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://culturepass.au/og-default.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@culturepassau" />
+        <meta name="theme-color" content="#2C2A72" />
+      </Head>
+      <Stack
       screenOptions={{
         headerShown: false,
         headerShadowVisible: false,
@@ -197,6 +209,7 @@ function RootLayoutNav() {
       <Stack.Screen name="admin/audit-logs" />
       <Stack.Screen name="admin/council-claims" />
     </Stack>
+    </>
   );
 }
 

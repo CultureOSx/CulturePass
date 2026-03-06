@@ -173,7 +173,7 @@ export default function TicketsScreen() {
   const colors  = useColors();
   const { userId } = useAuth();
 
-  const { data: tickets = [], isLoading } = useQuery<Ticket[]>({
+  const { data: tickets = [], isLoading, error, refetch } = useQuery<Ticket[]>({
     queryKey: ['/api/tickets', userId],
     enabled: !!userId,
   });
@@ -186,6 +186,7 @@ export default function TicketsScreen() {
       queryClient.invalidateQueries({ queryKey: ['/api/tickets', userId] });
       Alert.alert('Ticket Cancelled', 'Your ticket has been cancelled. A refund will be processed.');
     },
+    onError: () => Alert.alert('Error', 'Could not cancel ticket. Please try again.'),
   });
 
   const handleCancel = (ticket: Ticket) => {
@@ -217,7 +218,15 @@ export default function TicketsScreen() {
           contentContainerStyle={{ paddingBottom: 40 + (Platform.OS === 'web' ? 34 : insets.bottom) }}
           showsVerticalScrollIndicator={false}
         >
-          {isLoading ? (
+          {error ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background, gap: 12, padding: 24 }}>
+              <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
+              <Text style={{ color: colors.text, fontFamily: 'Poppins_600SemiBold', fontSize: 16 }}>Something went wrong</Text>
+              <Pressable onPress={() => refetch()}>
+                <Text style={{ color: colors.primary, fontFamily: 'Poppins_500Medium', fontSize: 14 }}>Try again</Text>
+              </Pressable>
+            </View>
+          ) : isLoading ? (
             <View style={s.emptyState}>
               <ActivityIndicator color={colors.primary} size="large" />
             </View>

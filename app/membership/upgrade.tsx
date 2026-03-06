@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, usePathname } from 'expo-router';
+import Head from 'expo-router/head';
 import * as Haptics from 'expo-haptics';
 import * as WebBrowser from 'expo-web-browser';
 import { useState, useCallback } from 'react';
@@ -144,6 +145,7 @@ export default function UpgradeScreen() {
   if (!isAuthenticated) {
     return (
       <View style={[s.container, { paddingTop: insets.top + webTop, backgroundColor: colors.background }]}>
+        <Head><title>Upgrade Membership — CulturePass</title></Head>
         {/* Header with back button */}
         <View style={[s.header, { borderBottomColor: colors.borderLight, backgroundColor: colors.background }]}>
           <Pressable onPress={() => router.back()} style={s.backBtn} hitSlop={12}>
@@ -225,6 +227,7 @@ export default function UpgradeScreen() {
 
   return (
     <View style={[s.container, { paddingTop: insets.top + webTop, backgroundColor: colors.background }]}>
+      <Head><title>Upgrade Membership — CulturePass</title></Head>
       <View style={[s.header, { borderBottomColor: colors.borderLight, backgroundColor: colors.background }]}>
         <Pressable onPress={() => router.back()} style={s.backBtn} hitSlop={12}>
           <Ionicons name="chevron-back" size={22} color={colors.text} />

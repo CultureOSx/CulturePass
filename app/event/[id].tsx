@@ -11,7 +11,8 @@ import {
   ActivityIndicator,
   Linking,
 } from "react-native";
-import { router, useLocalSearchParams, usePathname } from "expo-router";
+import { Stack, router, useLocalSearchParams, usePathname } from "expo-router";
+import Head from "expo-router/head";
 import { goBackOrReplace } from "@/lib/navigation";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -119,8 +120,34 @@ export default function EventDetailScreen() {
     );
   }
 
+  const desc = event.description?.slice(0, 155) ?? `${event.title} at ${event.venue ?? ''}`;
+  const ogImage = event.imageUrl ?? 'https://culturepass.au/og-default.png';
+  const canonicalUrl = `https://culturepass.au/event/${event.id}`;
+
   return (
     <ErrorBoundary>
+      <Stack.Screen options={{ title: event.title }} />
+      <Head>
+        <title>{event.title} — CulturePass</title>
+        <meta name="description" content={desc} />
+        <meta property="og:title" content={event.title} />
+        <meta property="og:description" content={desc} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:type" content="event" />
+        <link rel="canonical" href={canonicalUrl} />
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Event',
+          name: event.title,
+          startDate: event.date,
+          location: { '@type': 'Place', name: event.venue, address: event.address },
+          image: event.imageUrl,
+          description: event.description,
+          organizer: { '@type': 'Organization', name: 'CulturePass' },
+          url: canonicalUrl,
+        })}</script>
+      </Head>
       <EventDetail
         event={event}
         topInset={topInset}

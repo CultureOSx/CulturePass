@@ -3,7 +3,8 @@ import {
   StyleSheet, Text, View, ScrollView, Pressable, Platform, Image, ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
+import Head from 'expo-router/head';
 import { goBackOrReplace } from '@/lib/navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -64,7 +65,24 @@ export default function CommunityDetailScreen() {
   }
 
   if (dbCommunity) {
-    return <DbCommunityView community={dbCommunity} topInset={topInset} bottomInset={bottomInset} colors={colors} />;
+    const desc = dbCommunity.description?.slice(0, 155) ?? `Join the ${dbCommunity.name} community on CulturePass`;
+    const ogImage = dbCommunity.imageUrl ?? 'https://culturepass.au/og-default.png';
+    const canonicalUrl = `https://culturepass.au/community/${dbCommunity.id}`;
+    return (
+      <>
+        <Stack.Screen options={{ title: `${dbCommunity.name} Community` }} />
+        <Head>
+          <title>{dbCommunity.name} Community — CulturePass</title>
+          <meta name="description" content={desc} />
+          <meta property="og:title" content={`${dbCommunity.name} — CulturePass Community`} />
+          <meta property="og:description" content={desc} />
+          <meta property="og:image" content={ogImage} />
+          <meta property="og:url" content={canonicalUrl} />
+          <link rel="canonical" href={canonicalUrl} />
+        </Head>
+        <DbCommunityView community={dbCommunity} topInset={topInset} bottomInset={bottomInset} colors={colors} />
+      </>
+    );
   }
 
   return (

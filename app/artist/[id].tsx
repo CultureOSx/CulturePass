@@ -11,7 +11,7 @@ import {
   Alert,
   Linking,
 } from "react-native";
-import { useLocalSearchParams, router, useNavigation } from "expo-router";
+import { useLocalSearchParams, router, useNavigation, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -100,6 +100,7 @@ export default function ArtistDetailScreen() {
       contentContainerStyle={{ paddingBottom: 120 }}
       showsVerticalScrollIndicator={false}
     >
+      <Stack.Screen options={{ title: profile?.name ?? 'Artist' }} />
       {/* HERO */}
       <View style={styles.heroContainer}>
         {heroImage ? (

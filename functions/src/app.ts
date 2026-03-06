@@ -2275,6 +2275,42 @@ app.post('/api/events/:id/publish', requireAuth, requireRole('organizer', 'admin
   }
 });
 
+// POST /api/events/:id/save — authenticated user saves an event
+app.post('/api/events/:id/save', requireAuth, async (req, res) => {
+  const eventId = qparam(req.params.id);
+  const uid = req.user!.id;
+  try {
+    if (isFirestoreConfigured) {
+      await db.collection('users').doc(uid).update({
+        savedEvents: firestore.FieldValue.arrayUnion(eventId),
+      });
+      return res.json({ success: true, eventId });
+    }
+    return res.json({ success: true, eventId });
+  } catch (err) {
+    console.error('[POST /api/events/:id/save]:', err);
+    return res.status(500).json({ error: 'Failed to save event' });
+  }
+});
+
+// DELETE /api/events/:id/save — authenticated user unsaves an event
+app.delete('/api/events/:id/save', requireAuth, async (req, res) => {
+  const eventId = qparam(req.params.id);
+  const uid = req.user!.id;
+  try {
+    if (isFirestoreConfigured) {
+      await db.collection('users').doc(uid).update({
+        savedEvents: firestore.FieldValue.arrayRemove(eventId),
+      });
+      return res.json({ success: true });
+    }
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('[DELETE /api/events/:id/save]:', err);
+    return res.status(500).json({ error: 'Failed to unsave event' });
+  }
+});
+
 // ---------------------------------------------------------------------------
 // Locations — Firestore-backed hierarchy (Australia: states + cities)
 // ---------------------------------------------------------------------------

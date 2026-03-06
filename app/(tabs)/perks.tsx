@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import Head from 'expo-router/head';
 import * as Haptics from 'expo-haptics';
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -178,7 +179,8 @@ export default function PerksTabScreen() {
 
   return (
     <ErrorBoundary>
-      <View style={[s.container, { paddingTop: webTopInset, backgroundColor: colors.background }]}> 
+      <View style={[s.container, { paddingTop: webTopInset, backgroundColor: colors.background }]}>
+        <Head><title>CulturePass Perks &amp; Rewards</title></Head>
 
         {/* Header */}
         <View style={[s.headerRow, shellStyle]}>

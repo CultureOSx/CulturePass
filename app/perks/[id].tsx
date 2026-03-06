@@ -1,5 +1,5 @@
 import { View, Text, Pressable, StyleSheet, ScrollView, Platform, Alert, Share } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { PerkAvailability } from '@/components/perks/PerkAvailability';
 import { PerkMembershipCard } from '@/components/perks/PerkMembershipCard';
@@ -112,6 +112,7 @@ export default function PerkDetailScreen() {
   return (
     <ErrorBoundary>
       <View style={styles.container}>
+        <Stack.Screen options={{ title: perk?.title ?? 'Perk' }} />
         <PerkHero
           perk={perk}
           topInset={topInset}

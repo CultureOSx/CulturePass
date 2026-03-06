@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import Head from 'expo-router/head';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
@@ -115,6 +116,7 @@ export default function AllEventsScreen() {
   return (
     <ErrorBoundary>
       <View style={[s.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
+      <Head><title>All Events — CulturePass</title></Head>
       <View style={[s.header, { paddingHorizontal: hPad }]}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="chevron-back" size={24} color={colors.text} />

@@ -1,5 +1,5 @@
 import { View, Text, Pressable, StyleSheet, ScrollView, Platform, Linking, ActivityIndicator } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, shadows } from '@/constants/theme';
@@ -53,6 +53,7 @@ export default function BusinessDetailScreen() {
 
   return (
     <View style={[styles.container]}>
+      <Stack.Screen options={{ title: business?.name ?? 'Business' }} />
       <View style={[styles.hero, { backgroundColor: business.color, paddingTop: topInset }]}>
         <LinearGradient
           colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.6)']}
