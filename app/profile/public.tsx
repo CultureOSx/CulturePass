@@ -28,7 +28,7 @@ import {
 } from './constants';
 import { styles } from './styles';
 
-import { BrandDots } from './components/BrandDots';
+import { BrandDots } from '../../components/profile/BrandDots';
 import { StatItem } from './components/StatItem';
 import { SectionHeader } from './components/SectionHeader';
 import { SocialCard } from './components/SocialCard';

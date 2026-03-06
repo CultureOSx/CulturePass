@@ -14,7 +14,7 @@ export const DetailRow = memo(({
 }) => {
   const content = (
     <>
-      <View style={[styles.detailIconWrap, { backgroundColor: iconBg }]}>
+      <View style={[styles.detailIconWrap, { backgroundColor: iconBg }]}> 
         <Ionicons name={icon} size={18} color={iconColor} />
       </View>
       <View style={styles.detailText}>

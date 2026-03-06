@@ -341,7 +341,15 @@ export default function TabLayout() {
             screenOptions={{ headerShown: false }}
             tabBar={Platform.OS === 'web' ? undefined : (props) => <CustomTabBar {...props} position="top" />}
           >
-            <TabScreens />
+            <Tabs.Screen name="index"       options={{ title: 'Discover' }} />
+            <Tabs.Screen name="calendar"   options={{ title: 'Calendar' }} />
+            <Tabs.Screen name="communities" options={{ title: 'Community' }} />
+            <Tabs.Screen name="perks"      options={{ title: 'Perks' }} />
+            <Tabs.Screen name="profile"    options={{ title: 'Profile' }} />
+            <Tabs.Screen name="council"    options={{ href: null }} />
+            <Tabs.Screen name="explore"    options={{ href: null }} />
+            <Tabs.Screen name="directory"  options={{ href: null }} />
+            <Tabs.Screen name="dashboard"  options={{ href: undefined }} />
           </Tabs>
         </View>
       </QueryClientProvider>
@@ -357,7 +365,15 @@ export default function TabLayout() {
           screenOptions={{ headerShown: false }}
           tabBar={(props) => <CustomTabBar {...props} position="bottom" />}
         >
-          <TabScreens />
+          <Tabs.Screen name="index"       options={{ title: 'Discover' }} />
+          <Tabs.Screen name="calendar"   options={{ title: 'Calendar' }} />
+          <Tabs.Screen name="communities" options={{ title: 'Community' }} />
+          <Tabs.Screen name="perks"      options={{ title: 'Perks' }} />
+          <Tabs.Screen name="profile"    options={{ title: 'Profile' }} />
+          <Tabs.Screen name="council"    options={{ href: null }} />
+          <Tabs.Screen name="explore"    options={{ href: null }} />
+          <Tabs.Screen name="directory"  options={{ href: null }} />
+          <Tabs.Screen name="dashboard"  options={{ href: undefined }} />
         </Tabs>
       </View>
     </QueryClientProvider>

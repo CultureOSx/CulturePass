@@ -18,20 +18,7 @@ export function redirectSystemPath({
     ["/artists/", "/artist/"],
     ["/communities/", "/community/"],
     ["/profiles/", "/profile/"],
-    ["/tickets/", "/tickets/"],
-    ["/users/", "/user/"],
-    ["/businesses/", "/business/"],
-  ] as const;
-
-  for (const [from, to] of remap) {
-    if (cleanPath.startsWith(from)) {
-      return `${cleanPath.replace(from, to)}${querySuffix}`;
-    }
-  }
-
-  if (initial && cleanPath === "/home") {
-    return "/(tabs)";
-  }
-
-  return `${cleanPath}${querySuffix}`;
+    // ...existing code...
+  ];
+  // ...existing code...
 }

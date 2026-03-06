@@ -287,10 +287,7 @@ export const dark: ColorTheme = {
 
 export const shadows = {
   small: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
+    boxShadow: '0px 1px 3px rgba(0,0,0,0.04)',
     elevation: 1,
   } satisfies ShadowStyle,
 
@@ -303,11 +300,8 @@ export const shadows = {
   } satisfies ShadowStyle,
 
   large: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12, // More pronounced for modals/popovers
-    shadowRadius: 16,
-    elevation: 6,
+    boxShadow: '0px 2px 8px rgba(0,0,0,0.07)',
+    elevation: 3,
   } satisfies ShadowStyle,
 
   heavy: {
