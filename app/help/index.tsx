@@ -132,7 +132,7 @@ export default function HelpScreen() {
       <Head><title>Help Centre — CulturePass</title></Head>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
+        <Pressable onPress={() => router.back()} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Go back">
           <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </Pressable>
         <Text style={styles.headerTitle}>Help & Support</Text>
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   contactLabel: { fontSize: 15, fontFamily: 'Poppins_500Medium', color: Colors.text },
   contactSub: {
     fontSize: 12, fontFamily: 'Poppins_400Regular',
-    color: Colors.text, marginTop: 1,
+    color: Colors.textSecondary, marginTop: 1,
   },
   divider: { height: 1, backgroundColor: Colors.divider, marginLeft: 66 },
 

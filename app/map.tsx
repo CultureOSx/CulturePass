@@ -11,6 +11,7 @@ import * as Haptics from 'expo-haptics';
 import NativeMapView from '@/components/NativeMapView';
 import type { EventData } from '@/shared/schema';
 import { getPostcodesByPlace } from '@shared/location/australian-postcodes';
+import { useColors } from '@/hooks/useColors';
 
 const CITY_COORDS: Record<string, { latitude: number; longitude: number }> = {
   'Sydney': { latitude: -33.8688, longitude: 151.2093 },
@@ -65,6 +66,7 @@ function WebCityList({ cityGroups, selectedCity, onSelectCity, onEventPress }: {
   onSelectCity: (city: string | null) => void;
   onEventPress: (id: string) => void;
 }) {
+  const colors = useColors();
   const selectedEvents = selectedCity ? (cityGroups[selectedCity]?.events || []) : [];
   const totalEvents = Object.values(cityGroups).reduce((sum, group) => sum + group.count, 0);
 
@@ -76,29 +78,31 @@ function WebCityList({ cityGroups, selectedCity, onSelectCity, onEventPress }: {
             <Ionicons name="map" size={28} color={Colors.primary} />
           </View>
           <Text style={webStyles.mapInfoTitle}>Events by City</Text>
-          <Text style={webStyles.mapInfoSub}>
+          <Text style={[webStyles.mapInfoSub, { color: colors.textSecondary }]}>
             {Object.keys(cityGroups).length} cities · {totalEvents} cultural events
           </Text>
         </View>
         {Object.entries(cityGroups).map(([city, group]) => (
           <Pressable
             key={city}
-            style={[webStyles.cityRow, selectedCity === city && webStyles.cityRowActive, Platform.OS === 'web' && { cursor: 'pointer' as any }]}
+            style={[webStyles.cityRow, selectedCity === city && webStyles.cityRowActive, Platform.OS === 'web' && { cursor: 'pointer' as never }]}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               onSelectCity(selectedCity === city ? null : city);
             }}
+            accessibilityRole="button"
+            accessibilityLabel={`${city}, ${group.count} event${group.count !== 1 ? 's' : ''}`}
           >
             <View style={webStyles.cityLeft}>
               <View style={[webStyles.cityDot, selectedCity === city && webStyles.cityDotActive]}>
-                <Ionicons name="location" size={18} color={selectedCity === city ? '#FFF' : Colors.primary} />
+                <Ionicons name="location" size={18} color={selectedCity === city ? Colors.textInverse : Colors.primary} />
               </View>
               <View>
                 <Text style={webStyles.cityName}>{city}</Text>
-                <Text style={webStyles.cityCount}>{group.count} event{group.count !== 1 ? 's' : ''}</Text>
+                <Text style={[webStyles.cityCount, { color: colors.textSecondary }]}>{group.count} event{group.count !== 1 ? 's' : ''}</Text>
               </View>
             </View>
-            <Ionicons name={selectedCity === city ? 'chevron-up' : 'chevron-forward'} size={18} color="#636366" />
+            <Ionicons name={selectedCity === city ? 'chevron-up' : 'chevron-forward'} size={18} color={colors.textSecondary} />
           </Pressable>
         ))}
       </ScrollView>
@@ -108,21 +112,29 @@ function WebCityList({ cityGroups, selectedCity, onSelectCity, onEventPress }: {
           <View style={webStyles.panelHeader}>
             <View>
               <Text style={webStyles.panelCity}>{selectedCity}</Text>
-              <Text style={webStyles.panelCount}>{selectedEvents.length} events</Text>
+              <Text style={[webStyles.panelCount, { color: colors.textSecondary }]}>{selectedEvents.length} events</Text>
             </View>
-            <Pressable onPress={() => onSelectCity(null)} hitSlop={10} style={Platform.OS === 'web' ? { cursor: 'pointer' as any } : undefined}>
-              <Ionicons name="close-circle" size={26} color="#636366" />
+            <Pressable
+              onPress={() => onSelectCity(null)}
+              hitSlop={10}
+              style={Platform.OS === 'web' ? { cursor: 'pointer' as never } : undefined}
+              accessibilityRole="button"
+              accessibilityLabel="Close city panel"
+            >
+              <Ionicons name="close-circle" size={26} color={colors.textSecondary} />
             </Pressable>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
             {selectedEvents.map((event) => (
               <Pressable
                 key={event.id}
-                style={[styles.eventCard, Platform.OS === 'web' && { cursor: 'pointer' as any }]}
+                style={[styles.eventCard, Platform.OS === 'web' && { cursor: 'pointer' as never }]}
                 onPress={() => onEventPress(event.id)}
+                accessibilityRole="button"
+                accessibilityLabel={`View event: ${event.title}`}
               >
                 {event.imageUrl ? (
-                  <Image source={{ uri: event.imageUrl }} style={styles.eventImage} resizeMode="cover" />
+                  <Image source={{ uri: event.imageUrl }} style={styles.eventImage} contentFit="cover" />
                 ) : (
                   <View style={[styles.eventImage, { backgroundColor: Colors.primary + '20', alignItems: 'center', justifyContent: 'center' }]}>
                     <Ionicons name="calendar" size={24} color={Colors.primary} />
@@ -133,8 +145,8 @@ function WebCityList({ cityGroups, selectedCity, onSelectCity, onEventPress }: {
                   <Text style={styles.eventTitle} numberOfLines={2}>{event.title}</Text>
                   {event.venue && (
                     <View style={styles.eventMeta}>
-                      <Ionicons name="location-outline" size={11} color="#8E8E93" />
-                      <Text style={styles.eventVenue} numberOfLines={1}>{event.venue}</Text>
+                      <Ionicons name="location-outline" size={11} color={colors.textSecondary} />
+                      <Text style={[styles.eventVenue, { color: colors.textSecondary }]} numberOfLines={1}>{event.venue}</Text>
                     </View>
                   )}
                 </View>
@@ -153,7 +165,7 @@ export default function MapScreen() {
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
-  const { data: events = [], isLoading } = useQuery<EventData[]>({
+  const { data: events = [], isLoading, error, refetch } = useQuery<EventData[]>({
     queryKey: ['events', 'list', 'map'],
     queryFn: async () => {
       const data = await api.events.list({ pageSize: 300 });
@@ -188,17 +200,38 @@ export default function MapScreen() {
     router.push({ pathname: '/event/[id]', params: { id: eventId } });
   };
 
+  const colors = useColors();
+
   return (
     <View style={[styles.container, { paddingTop: topInset }]}>
       <View style={styles.header}>
-        <Pressable onPress={() => { if (router.canGoBack()) router.back(); else router.replace('/'); }} style={styles.backBtn} hitSlop={10}>
+        <Pressable
+          onPress={() => { if (router.canGoBack()) router.back(); else router.replace('/'); }}
+          style={styles.backBtn}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
           <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </Pressable>
         <Text style={styles.headerTitle}>Events Map</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      {isLoading ? (
+      {error ? (
+        <View style={styles.loadingContainer}>
+          <Ionicons name="alert-circle-outline" size={48} color={Colors.error} />
+          <Text style={[styles.loadingText, { color: colors.text }]}>Failed to load events</Text>
+          <Pressable
+            onPress={() => refetch()}
+            style={{ marginTop: 8, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: Colors.primary, borderRadius: 12 }}
+            accessibilityRole="button"
+            accessibilityLabel="Retry loading events"
+          >
+            <Text style={{ color: Colors.textInverse, fontFamily: 'Poppins_600SemiBold', fontSize: 14 }}>Try Again</Text>
+          </Pressable>
+        </View>
+      ) : isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
           <Text style={styles.loadingText}>Loading events...</Text>
@@ -248,7 +281,7 @@ const webStyles = StyleSheet.create({
   mapInfoSub: {
     fontSize: 14,
     fontFamily: 'Poppins_400Regular',
-    color: '#636366',
+    color: Colors.textSecondary,
   },
   cityRow: {
     flexDirection: 'row',
@@ -288,7 +321,7 @@ const webStyles = StyleSheet.create({
   cityCount: {
     fontSize: 12,
     fontFamily: 'Poppins_400Regular',
-    color: '#636366',
+    color: Colors.textSecondary,
   },
   bottomPanel: {
     position: 'absolute',
@@ -318,7 +351,7 @@ const webStyles = StyleSheet.create({
   panelCount: {
     fontSize: 12,
     fontFamily: 'Poppins_400Regular',
-    color: '#636366',
+    color: Colors.textSecondary,
   },
 });
 
@@ -356,7 +389,7 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 14,
     fontFamily: 'Poppins_400Regular',
-    color: '#636366',
+    color: Colors.textSecondary,
   },
   eventCard: {
     width: 220,
@@ -395,7 +428,7 @@ const styles = StyleSheet.create({
   eventVenue: {
     fontSize: 11,
     fontFamily: 'Poppins_400Regular',
-    color: '#8E8E93',
+    color: Colors.textSecondary,
     flex: 1,
   },
 });

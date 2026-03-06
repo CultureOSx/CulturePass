@@ -31,7 +31,7 @@ export default function ArtistDetailScreen() {
   const goBack = () =>
     navigation.canGoBack() ? router.back() : router.replace("/");
 
-  const { data: profile, isLoading } = useQuery<Profile>({
+  const { data: profile, isLoading, error } = useQuery<Profile>({
     queryKey: ["/api/profiles", id],
     queryFn: () => api.profiles.get(id),
   });
@@ -67,9 +67,9 @@ export default function ArtistDetailScreen() {
     );
   }
 
-  /* ---------------- Not Found ---------------- */
+  /* ---------------- Error / Not Found ---------------- */
 
-  if (!profile) {
+  if (error || !profile) {
     return (
       <View style={styles.notFound}>
         <Ionicons
@@ -77,8 +77,8 @@ export default function ArtistDetailScreen() {
           size={48}
           color={Colors.textTertiary}
         />
-        <Text style={styles.notFoundText}>Artist not found</Text>
-        <Pressable onPress={goBack}>
+        <Text style={styles.notFoundText}>{error ? 'Failed to load artist' : 'Artist not found'}</Text>
+        <Pressable onPress={goBack} accessibilityRole="button" accessibilityLabel="Go back">
           <Text style={styles.backLink}>Go Back</Text>
         </Pressable>
       </View>
@@ -90,7 +90,7 @@ export default function ArtistDetailScreen() {
     .filter(Boolean)
     .join(", ");
 
-  const webTopInset = Platform.OS === "web" ? 0 : 0;
+  const topOffset = Platform.OS === "web" ? 0 : insets.top;
 
   /* ---------------- UI ---------------- */
 
@@ -124,14 +124,18 @@ export default function ArtistDetailScreen() {
         {/* Top buttons */}
         <Pressable
           onPress={goBack}
-          style={[styles.iconBtn, { left: 16, top: insets.top + webTopInset + 8 }]}
+          style={[styles.iconBtn, { left: 16, top: topOffset + 8 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
           <Ionicons name="chevron-back" size={22} color="#FFF" />
         </Pressable>
 
         <Pressable
           onPress={handleShare}
-          style={[styles.iconBtn, { right: 16, top: insets.top + webTopInset + 8 }]}
+          style={[styles.iconBtn, { right: 16, top: topOffset + 8 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Share artist profile"
         >
           <Ionicons name="share-outline" size={22} color="#FFF" />
         </Pressable>
@@ -234,20 +238,35 @@ export default function ArtistDetailScreen() {
 
 /* ---------------- Components ---------------- */
 
-function StatCard({
-  icon,
-  value,
-  label,
-  color,
-  onPress,
-}: any) {
-  const Wrapper: any = onPress ? Pressable : View;
+interface StatCardProps {
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  value: string | number;
+  label: string;
+  color: string;
+  onPress?: () => void;
+}
+
+function StatCard({ icon, value, label, color, onPress }: StatCardProps) {
+  if (onPress) {
+    return (
+      <Pressable
+        style={styles.statCard}
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${value}`}
+      >
+        <Ionicons name={icon} size={20} color={color} />
+        <Text style={styles.statValue}>{value}</Text>
+        <Text style={styles.statLabel}>{label}</Text>
+      </Pressable>
+    );
+  }
   return (
-    <Wrapper style={styles.statCard} onPress={onPress}>
+    <View style={styles.statCard}>
       <Ionicons name={icon} size={20} color={color} />
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
-    </Wrapper>
+    </View>
   );
 }
 

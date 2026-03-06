@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, getApiUrl, queryClient } from '@/lib/query-client';
+import { apiRequest, getApiUrl, getAccessToken, queryClient } from '@/lib/query-client';
 import { api } from '@/lib/api';
 import * as ImagePicker from 'expo-image-picker';
 import { manipulateAsync, SaveFormat } from '@/lib/image-manipulator';
@@ -146,8 +146,11 @@ export default function EditProfileScreen() {
         } as unknown as Blob);
       }
 
-      const base      = getApiUrl();
-      const uploadRes = await fetch(`${base}api/uploads/image`, { method: 'POST', body: formData });
+      const base    = getApiUrl();
+      const token   = getAccessToken();
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const uploadRes = await fetch(`${base}api/uploads/image`, { method: 'POST', body: formData, headers });
       if (!uploadRes.ok) throw new Error('Upload failed');
       return uploadRes.json() as Promise<UploadedImage>;
     },
