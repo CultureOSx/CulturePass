@@ -32,7 +32,7 @@ import { BrandDots } from '../../components/profile/BrandDots';
 import { StatItem } from './components/StatItem';
 import { SectionHeader } from './components/SectionHeader';
 import { SocialCard } from './components/SocialCard';
-import { DetailRow } from './components/DetailRow';
+import { DetailRow } from '../../components/profile/DetailRow';
 import { LoadingSkeleton } from './components/LoadingSkeleton';
 
 export default function PublicProfileScreen() {
