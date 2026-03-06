@@ -16,7 +16,6 @@ import {
 } from 'firebase/auth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Checkbox } from '@/components/ui/Checkbox';
 import { SocialButton } from '@/components/ui/SocialButton';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useOnboarding } from '@/contexts/OnboardingContext';
@@ -37,7 +36,6 @@ export default function LoginScreen() {
   const searchParams = useLocalSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const isValid = email.trim().length > 0 && password.length >= 6;
@@ -198,7 +196,11 @@ export default function LoginScreen() {
           <View>
             <View style={styles.passwordHeader}>
               <Text style={[styles.label, { color: colors.textInverse }]}>Password</Text>
-              <Pressable onPress={() => router.push('/(onboarding)/forgot-password')}>
+              <Pressable
+                onPress={() => router.push('/(onboarding)/forgot-password')}
+                accessibilityRole="link"
+                accessibilityLabel="Forgot password"
+              >
                 <Text style={[styles.forgotText, { color: colors.warning }]}>Forgot Password?</Text>
               </Pressable>
             </View>
@@ -215,12 +217,6 @@ export default function LoginScreen() {
             />
           </View>
         </View>
-
-        <Checkbox
-          checked={rememberMe}
-          onToggle={setRememberMe}
-          label="Remember me"
-        />
 
         <Button
           variant="primary"
@@ -250,7 +246,12 @@ export default function LoginScreen() {
           }
         </View>
 
-        <Pressable style={styles.switchRow} onPress={() => router.replace('/(onboarding)/signup')}>
+        <Pressable
+          style={styles.switchRow}
+          onPress={() => router.replace('/(onboarding)/signup')}
+          accessibilityRole="link"
+          accessibilityLabel="Don't have an account? Sign up"
+        >
           <Text style={[styles.switchText, { color: colors.textInverse + 'D9' }]}>Don&apos;t have an account? <Text style={[styles.switchLink, { color: colors.warning }]}>Sign Up</Text></Text>
         </Pressable>
       </View>
@@ -295,7 +296,14 @@ export default function LoginScreen() {
           style={StyleSheet.absoluteFillObject}
         />
         <View style={styles.header}>
-          <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')} hitSlop={8}><Ionicons name="chevron-back" size={24} color={colors.textInverse} /></Pressable>
+          <Pressable
+            onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <Ionicons name="chevron-back" size={24} color={colors.textInverse} />
+          </Pressable>
         </View>
         {formContent}
       </View>

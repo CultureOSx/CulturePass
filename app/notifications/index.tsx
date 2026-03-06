@@ -47,7 +47,7 @@ export default function NotificationsScreen() {
   const colors = useColors();
   const { userId } = useAuth();
 
-  const { data: notifications = [], isLoading } = useQuery<Notification[]>({
+  const { data: notifications = [], isLoading, error, refetch } = useQuery<Notification[]>({
     queryKey: ['/api/notifications', userId],
     queryFn: () => apiRequest('GET', `/api/notifications/${userId}`).then(r => r.json()) as Promise<Notification[]>,
     enabled: !!userId,
@@ -82,21 +82,16 @@ export default function NotificationsScreen() {
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  // Fallback for web navigation: show a simple message if no notifications
-  if (Platform.OS === 'web' && notifications.length === 0 && !isLoading) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40, backgroundColor: colors.background }}>
-        <Text style={{ fontSize: 24, fontFamily: 'Poppins_700Bold', color: colors.primary }}>Notifications</Text>
-        <Text style={{ marginTop: 12, fontFamily: 'Poppins_400Regular', color: colors.textSecondary }}>Your notifications will appear here.</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={[s.container, { paddingTop: insets.top + webTop, backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={s.header}>
-        <Pressable style={[s.backBtn, { backgroundColor: colors.surface, borderColor: colors.borderLight }]} onPress={() => router.back()}>
+        <Pressable
+          style={[s.backBtn, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
           <Ionicons name="chevron-back" size={22} color={colors.text} />
         </Pressable>
         <Text style={[s.headerTitle, { color: colors.text }]}>Notifications</Text>
@@ -104,6 +99,8 @@ export default function NotificationsScreen() {
           <Pressable
             style={[s.markAllBtn, { backgroundColor: colors.primaryGlow }]}
             onPress={() => { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); markAllReadMutation.mutate(); }}
+            accessibilityRole="button"
+            accessibilityLabel="Mark all notifications as read"
           >
             <Text style={[s.markAllText, { color: colors.primary }]}>Read All</Text>
           </Pressable>
@@ -131,6 +128,20 @@ export default function NotificationsScreen() {
           <View style={s.empty}>
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
+        ) : error ? (
+          <View style={s.empty}>
+            <Ionicons name="alert-circle-outline" size={52} color={colors.error} />
+            <Text style={[s.emptyText, { color: colors.text }]}>Could not load notifications</Text>
+            <Text style={[s.emptySub, { color: colors.textSecondary }]}>Check your connection and try again</Text>
+            <Pressable
+              onPress={() => refetch()}
+              style={[s.retryBtn, { backgroundColor: colors.primary }]}
+              accessibilityRole="button"
+              accessibilityLabel="Retry loading notifications"
+            >
+              <Text style={[s.retryText, { color: colors.textInverse }]}>Try Again</Text>
+            </Pressable>
+          </View>
         ) : notifications.length === 0 ? (
           <View style={s.empty}>
             <Ionicons name="notifications-off-outline" size={52} color={colors.textSecondary} />
@@ -145,6 +156,9 @@ export default function NotificationsScreen() {
               <Pressable
                 key={notif.id}
                 onPress={() => { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); if (!notif.isRead) markReadMutation.mutate(notif.id); }}
+                accessibilityRole="button"
+                accessibilityLabel={`${notif.isRead ? '' : 'Unread: '}${notif.title}. ${notif.message}`}
+                accessibilityHint="Long press to delete"
                 onLongPress={() => {
                   if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   Alert.alert('Delete Notification', 'Remove this notification?', [
@@ -207,4 +221,6 @@ const s = StyleSheet.create({
   unreadDot:    { width: 8, height: 8, borderRadius: 4, marginLeft: 8 },
   notifMessage: { fontSize: 13, fontFamily: 'Poppins_400Regular', lineHeight: 18, marginBottom: 4 },
   notifTime:    { fontSize: 11, fontFamily: 'Poppins_400Regular' },
+  retryBtn:     { marginTop: 12, paddingHorizontal: 24, paddingVertical: 11, borderRadius: 14 },
+  retryText:    { fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
 });

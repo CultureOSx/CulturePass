@@ -121,7 +121,7 @@ export default function SignUpScreen() {
     } catch (e: unknown) {
       const code = (e as { code?: string }).code;
       if (code === 'auth/email-already-in-use') {
-        setError('An account with this email already exists.');
+        setError('email-exists');
       } else if (code === 'auth/invalid-email') {
         setError('Please enter a valid email address.');
       } else if (code === 'auth/weak-password') {
@@ -143,10 +143,32 @@ export default function SignUpScreen() {
             <Text style={[styles.brandLabel, { color: colors.textInverse + '99' }]}>culturepass.app</Text>
           </View>
           <Text style={[styles.title, { color: colors.primary, fontSize: 28, fontWeight: '700', marginBottom: 6 }]}>Create Account</Text>
-          <Text style={[styles.benefitsRow, { color: colors.textSecondary, fontSize: 16 }]}>🎉 Free events · Community access · Exclusive perks</Text>
+          <View style={styles.benefitsRow} accessibilityLabel="Free events, community access, and exclusive perks">
+            <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
+            <Text style={[styles.benefitText, { color: colors.textSecondary }]}>Free events</Text>
+            <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
+            <Text style={[styles.benefitText, { color: colors.textSecondary }]}>Community access</Text>
+            <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
+            <Text style={[styles.benefitText, { color: colors.textSecondary }]}>Exclusive perks</Text>
+          </View>
           <Text style={[styles.subtitle, { color: colors.textSecondary, fontSize: 15 }]}>Join thousands of community members celebrating culture together.</Text>
 
-          {error && <Text style={[styles.errorText, { color: colors.error, fontWeight: '600', fontSize: 15, marginBottom: 8 }]}>{error}</Text>}
+          {error === 'email-exists' ? (
+            <View style={[styles.errorBox, { backgroundColor: colors.error + '15' }]}>
+              <Text style={[styles.errorText, { color: colors.error }]}>An account with this email already exists.</Text>
+              <Pressable
+                onPress={() => router.replace('/(onboarding)/login')}
+                accessibilityRole="link"
+                accessibilityLabel="Sign in to your existing account"
+              >
+                <Text style={[styles.errorLink, { color: colors.warning }]}>Sign in instead →</Text>
+              </Pressable>
+            </View>
+          ) : error ? (
+            <View style={[styles.errorBox, { backgroundColor: colors.error + '15' }]}>
+              <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
+            </View>
+          ) : null}
 
           <View style={styles.form}>
             <Input
@@ -230,7 +252,12 @@ export default function SignUpScreen() {
             }
           </View>
 
-          <Pressable style={styles.switchRow} onPress={() => router.replace('/(onboarding)/login')}>
+          <Pressable
+            style={styles.switchRow}
+            onPress={() => router.replace('/(onboarding)/login')}
+            accessibilityRole="link"
+            accessibilityLabel="Already have an account? Sign in"
+          >
             <Text style={[styles.switchText, { color: colors.textInverse + 'D9' }]}>Already have an account? <Text style={[styles.switchLink, { color: colors.warning }]}>Sign In</Text></Text>
           </Pressable>
         </View>
@@ -274,7 +301,14 @@ export default function SignUpScreen() {
           style={StyleSheet.absoluteFillObject}
         />
         <View style={styles.header}>
-          <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')} hitSlop={8}><Ionicons name="chevron-back" size={24} color={colors.textInverse} /></Pressable>
+          <Pressable
+            onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <Ionicons name="chevron-back" size={24} color={colors.textInverse} />
+          </Pressable>
         </View>
         {formContent}
       </View>
@@ -315,7 +349,10 @@ const styles = StyleSheet.create({
   switchRow: { alignItems: 'center' },
   switchText: { fontSize: 14, fontFamily: 'Poppins_400Regular' },
   switchLink: { fontFamily: 'Poppins_600SemiBold' },
-  benefitsRow: { fontSize: 13, fontFamily: 'Poppins_400Regular', marginBottom: 4 },
+  benefitsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 8 },
+  benefitText: { fontSize: 13, fontFamily: 'Poppins_500Medium' },
+  errorBox: { width: '100%', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 16, marginBottom: 8, gap: 4, alignItems: 'center' },
+  errorLink: { fontSize: 13, fontFamily: 'Poppins_600SemiBold', marginTop: 2 },
   checkText: { flex: 1, fontSize: 13, fontFamily: 'Poppins_400Regular', lineHeight: 20 },
   linkText: { fontFamily: 'Poppins_600SemiBold' },
   desktopWrapper: { alignItems: 'center', justifyContent: 'center' },
