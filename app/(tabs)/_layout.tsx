@@ -84,14 +84,15 @@ interface TabItemProps {
 }
 
 function TabItem({ tab, focused, color, activeColor, onPress, flex, isDesktopMenu = false }: TabItemProps) {
+  // Memoize tab item for performance
   const scaleAnim = useSharedValue(focused ? 1 : 0.9);
   const opacityAnim = useSharedValue(focused ? 1 : 0.55);
   const indicatorAnim = useSharedValue(focused ? 1 : 0);
 
   React.useEffect(() => {
-    scaleAnim.value = withSpring(focused ? 1 : 0.94, { damping: 18, stiffness: 320 });
+    scaleAnim.value = withSpring(focused ? 1 : 0.97, { damping: 16, stiffness: 340 });
     opacityAnim.value = withTiming(focused ? 1 : 0.72, { duration: 180 });
-    indicatorAnim.value = withTiming(focused ? 1 : 0, { duration: 200 });
+    indicatorAnim.value = withTiming(focused ? 1 : 0, { duration: 220 });
   }, [focused, scaleAnim, opacityAnim, indicatorAnim]);
 
   const iconStyle = useAnimatedStyle(() => ({
@@ -101,10 +102,19 @@ function TabItem({ tab, focused, color, activeColor, onPress, flex, isDesktopMen
 
   const pillStyle = useAnimatedStyle(() => ({
     opacity: indicatorAnim.value,
+    shadowColor: focused ? activeColor : color,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: focused ? 0.18 : 0,
+    shadowRadius: focused ? 8 : 0,
+    elevation: focused ? 6 : 0,
     transform: [
       { scaleX: interpolate(indicatorAnim.value, [0, 1], [0.4, 1], Extrapolation.CLAMP) },
+      { scaleY: interpolate(indicatorAnim.value, [0, 1], [0.8, 1.1], Extrapolation.CLAMP) },
     ],
   }));
+
+  // Tooltip for desktop
+  const tooltip = isDesktopMenu ? tab.label : undefined;
 
   return (
     <Pressable
@@ -113,12 +123,13 @@ function TabItem({ tab, focused, color, activeColor, onPress, flex, isDesktopMen
       accessibilityRole="tab"
       accessibilityState={{ selected: focused }}
       accessibilityLabel={tab.label}
+      {...(tooltip ? { title: tooltip } : {})}
     >
-      {/* Active pill background */}
+      {/* Active pill background with signature gradient and glow */}
       {!isDesktopMenu && (
         <Animated.View style={[tabItemStyles.pill, pillStyle]}>
           <LinearGradient
-            colors={gradients.primary}
+            colors={gradients.culturepassBrand}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={StyleSheet.absoluteFill}
@@ -143,6 +154,7 @@ function TabItem({ tab, focused, color, activeColor, onPress, flex, isDesktopMen
             name={focused ? tab.iconActive : tab.icon}
             size={TabBarTokens.iconSize}
             color={focused ? activeColor : color}
+            style={focused ? { textShadowColor: activeColor, textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 } : undefined}
           />
         )}
       </Animated.View>
@@ -156,6 +168,9 @@ function TabItem({ tab, focused, color, activeColor, onPress, flex, isDesktopMen
             color: Platform.OS === 'web' ? color : (focused ? activeColor : color),
             fontFamily: focused ? 'Poppins_600SemiBold' : 'Poppins_500Medium',
             fontSize: isDesktopMenu ? 14 : TabBarTokens.labelSize,
+            textShadowColor: focused ? activeColor : undefined,
+            textShadowOffset: focused ? { width: 0, height: 2 } : undefined,
+            textShadowRadius: focused ? 6 : undefined,
           },
           isDesktopMenu && (focused ? tabItemStyles.webLabelActive : tabItemStyles.webLabel),
         ]}
@@ -167,6 +182,7 @@ function TabItem({ tab, focused, color, activeColor, onPress, flex, isDesktopMen
       {isDesktopMenu && focused ? <View style={tabItemStyles.webUnderline} /> : null}
     </Pressable>
   );
+}
 }
 
 // ---------------------------------------------------------------------------
