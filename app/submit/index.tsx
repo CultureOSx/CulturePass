@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { apiRequest, getApiUrl, queryClient } from '@/lib/query-client';
+import { apiRequest, getApiUrl, getAccessToken, queryClient } from '@/lib/query-client';
 import * as ImagePicker from 'expo-image-picker';
 import { manipulateAsync, SaveFormat } from '@/lib/image-manipulator';
 import { fetch } from 'expo/fetch';
@@ -125,8 +125,11 @@ export default function SubmitScreen() {
     const formData = new FormData();
     formData.append('image', blob as unknown as Blob, 'upload.jpg');
 
-    const base = getApiUrl();
-    const uploadRes = await fetch(`${base}api/uploads/image`, { method: 'POST', body: formData });
+    const base  = getApiUrl();
+    const token = getAccessToken();
+    const uploadHeaders: Record<string, string> = {};
+    if (token) uploadHeaders['Authorization'] = `Bearer ${token}`;
+    const uploadRes = await fetch(`${base}api/uploads/image`, { method: 'POST', body: formData, headers: uploadHeaders });
     if (!uploadRes.ok) throw new Error('Failed image upload');
     const uploaded = await uploadRes.json() as Record<string, unknown>;
 

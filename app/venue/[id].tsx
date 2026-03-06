@@ -39,7 +39,7 @@ export default function VenueDetailScreen() {
     }
   }, [navigation]);
 
-  const { data: profile, isLoading } = useQuery<Profile>({
+  const { data: profile, isLoading, error } = useQuery<Profile>({
     queryKey: ['/api/profiles', id],
     queryFn: () => api.profiles.get(id),
   });
@@ -83,13 +83,13 @@ export default function VenueDetailScreen() {
     );
   }
 
-  if (!profile) {
+  if (error || !profile) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}> 
+      <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <Ionicons name="alert-circle" size={48} color={colors.textTertiary} />
-          <Text style={[styles.errorText, { color: colors.textSecondary }]}>Venue not found</Text>
-          <Pressable onPress={goBack} style={styles.backLinkBtn}>
+          <Ionicons name="alert-circle" size={48} color={colors.error} />
+          <Text style={[styles.errorText, { color: colors.textSecondary }]}>{error ? 'Failed to load venue' : 'Venue not found'}</Text>
+          <Pressable onPress={goBack} style={styles.backLinkBtn} accessibilityRole="button" accessibilityLabel="Go back">
             <Text style={[styles.backLinkText, { color: colors.primary }]}>Go Back</Text>
           </Pressable>
         </View>
@@ -121,16 +121,16 @@ export default function VenueDetailScreen() {
             locations={[0, 0.4, 1]}
             style={styles.heroGradient}
           />
-          <View style={[styles.heroTopBar, { top: insets.top + webTopInset + 8 }]}>
-            <Pressable onPress={goBack} style={styles.heroBtn}>
+          <View style={[styles.heroTopBar, { top: insets.top + 8 }]}>
+            <Pressable onPress={goBack} style={styles.heroBtn} accessibilityRole="button" accessibilityLabel="Go back">
               <Ionicons name="chevron-back" size={22} color={colors.textInverse} />
             </Pressable>
             <View style={{ flexDirection: "row", gap: 10 }}>
-              <Pressable onPress={handleShare} style={styles.heroBtn}>
+              <Pressable onPress={handleShare} style={styles.heroBtn} accessibilityRole="button" accessibilityLabel="Share venue">
                 <Ionicons name="share-outline" size={22} color={colors.textInverse} />
               </Pressable>
               {profile.address && (
-                <Pressable onPress={openDirections} style={styles.heroBtn}>
+                <Pressable onPress={openDirections} style={styles.heroBtn} accessibilityRole="button" accessibilityLabel="Get directions">
                   <Ionicons name="navigate" size={22} color={colors.textInverse} />
                 </Pressable>
               )}
@@ -182,7 +182,12 @@ export default function VenueDetailScreen() {
           )}
 
           {profile.address && (
-            <Pressable onPress={openDirections} style={styles.addressCard}>
+            <Pressable
+              onPress={openDirections}
+              style={styles.addressCard}
+              accessibilityRole="button"
+              accessibilityLabel={`Get directions to ${profile.address}`}
+            >
               <Ionicons name="location" size={20} color={Colors.light.primary} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.addressText}>{profile.address}</Text>
@@ -228,6 +233,8 @@ export default function VenueDetailScreen() {
                 <Pressable
                   style={styles.contactRow}
                   onPress={() => Linking.openURL(`mailto:${profile.email}`)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Email ${profile.email}`}
                 >
                   <Ionicons name="mail-outline" size={20} color={Colors.light.secondary} />
                   <Text style={styles.contactText}>{profile.email}</Text>
@@ -237,6 +244,8 @@ export default function VenueDetailScreen() {
                 <Pressable
                   style={styles.contactRow}
                   onPress={() => Linking.openURL(`tel:${profile.phone}`)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Call ${profile.phone}`}
                 >
                   <Ionicons name="call-outline" size={20} color={Colors.light.secondary} />
                   <Text style={styles.contactText}>{profile.phone}</Text>
@@ -251,6 +260,8 @@ export default function VenueDetailScreen() {
                       Linking.openURL(url);
                     }
                   }}
+                  accessibilityRole="link"
+                  accessibilityLabel={`Visit website: ${profile.website}`}
                 >
                   <Ionicons name="globe-outline" size={20} color={Colors.light.secondary} />
                   <Text style={styles.contactText}>{profile.website}</Text>

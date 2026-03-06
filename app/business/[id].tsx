@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet, ScrollView, Platform, Linking, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ScrollView, Platform, Linking, ActivityIndicator, Alert } from 'react-native';
 import { router, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,7 +16,7 @@ export default function BusinessDetailScreen() {
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
   const colors = useColors();
 
-  const { data: business, isLoading } = useQuery({
+  const { data: business, isLoading, error } = useQuery({
     queryKey: ['/api/businesses', id],
     queryFn: () => api.businesses.get(id as string),
     enabled: !!id,
@@ -38,11 +38,12 @@ export default function BusinessDetailScreen() {
     );
   }
 
-  if (!business) {
+  if (error || !business) {
     return (
       <View style={[styles.container, { paddingTop: topInset, justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={[styles.errorText, { color: colors.textSecondary }]}>Business not found</Text>
-        <Pressable onPress={() => router.back()}>
+        <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
+        <Text style={[styles.errorText, { color: colors.textSecondary }]}>{error ? 'Failed to load business' : 'Business not found'}</Text>
+        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back">
           <Text style={[styles.backLink, { color: colors.primary }]}>Go Back</Text>
         </Pressable>
       </View>
@@ -60,7 +61,7 @@ export default function BusinessDetailScreen() {
           locations={[0, 0.4, 1]}
           style={styles.heroOverlay}
         >
-          <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back">
             <Ionicons name="chevron-back" size={22} color={colors.textInverse} />
           </Pressable>
           <View style={styles.heroBottom}>
@@ -279,13 +280,20 @@ export default function BusinessDetailScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             Linking.openURL(`tel:${business.phone}`);
           }}
+          accessibilityRole="button"
+          accessibilityLabel={`Call ${business.name}`}
         >
           <Ionicons name="call" size={20} color={Colors.secondary} />
           <Text style={styles.callText}>Call</Text>
         </Pressable>
         <Pressable
           style={({ pressed }) => [styles.bookButton, pressed && { opacity: 0.9, transform: [{ scale: 0.97 }] }]}
-          onPress={() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)}
+          onPress={() => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            Alert.alert('Book Service', `To book a service with ${business.name}, please call them directly or visit their website.`);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={`Book service with ${business.name}`}
         >
           <Ionicons name="calendar" size={20} color={colors.textInverse} />
           <Text style={[styles.bookText, { color: colors.textInverse }]}>Book Service</Text>

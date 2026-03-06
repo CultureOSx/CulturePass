@@ -7,10 +7,10 @@ import {
   Platform,
   Alert,
   Share,
-  Image,
   Linking,
   ActivityIndicator,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -168,11 +168,21 @@ export default function TicketDetailScreen() {
 
   const headerRow = (
     <View style={s.header}>
-      <Pressable onPress={() => goBackOrReplace('/(tabs)')} style={[s.backBtn, { backgroundColor: colors.surface }]}>
+      <Pressable
+        onPress={() => goBackOrReplace('/(tabs)')}
+        style={[s.backBtn, { backgroundColor: colors.surface }]}
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
+      >
         <Ionicons name="chevron-back" size={22} color={colors.text} />
       </Pressable>
       <Text style={[s.headerTitle, { color: colors.text }]}>Ticket Details</Text>
-      <Pressable onPress={handleShare} style={[s.backBtn, { backgroundColor: colors.surface }]}>
+      <Pressable
+        onPress={handleShare}
+        style={[s.backBtn, { backgroundColor: colors.surface }]}
+        accessibilityRole="button"
+        accessibilityLabel="Share ticket"
+      >
         <Ionicons name="share-outline" size={20} color={colors.text} />
       </Pressable>
     </View>
@@ -330,12 +340,22 @@ export default function TicketDetailScreen() {
             <Text style={[s.walletTitle, { color: colors.text }]}>Add to Wallet</Text>
             <View style={s.walletButtons}>
               {(Platform.OS === 'ios' || Platform.OS === 'web') && (
-                <Pressable style={[s.walletBtn, { backgroundColor: '#000' }]} onPress={() => handleAddToWallet('apple')}>
+                <Pressable
+                  style={[s.walletBtn, { backgroundColor: '#000' }]}
+                  onPress={() => handleAddToWallet('apple')}
+                  accessibilityRole="button"
+                  accessibilityLabel="Add to Apple Wallet"
+                >
                   <Ionicons name="wallet" size={20} color="#FFF" />
                   <Text style={s.walletBtnText}>Apple Wallet</Text>
                 </Pressable>
               )}
-              <Pressable style={[s.walletBtn, { backgroundColor: '#4285F4' }]} onPress={() => handleAddToWallet('google')}>
+              <Pressable
+                style={[s.walletBtn, { backgroundColor: '#4285F4' }]}
+                onPress={() => handleAddToWallet('google')}
+                accessibilityRole="button"
+                accessibilityLabel="Add to Google Wallet"
+              >
                 <Ionicons name="logo-google" size={18} color="#FFF" />
                 <Text style={s.walletBtnText}>Google Wallet</Text>
               </Pressable>
@@ -348,6 +368,8 @@ export default function TicketDetailScreen() {
           <Pressable
             style={[s.actionBtn, { borderBottomColor: colors.borderLight }]}
             onPress={() => router.push({ pathname: '/event/[id]', params: { id: ticket.eventId } })}
+            accessibilityRole="button"
+            accessibilityLabel="View event details"
           >
             <View style={[s.actionIcon, { backgroundColor: colors.primaryGlow }]}>
               <Ionicons name="calendar" size={18} color={colors.primary} />
@@ -356,7 +378,12 @@ export default function TicketDetailScreen() {
             <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
           </Pressable>
 
-          <Pressable style={[s.actionBtn, { borderBottomColor: colors.borderLight }]} onPress={handleShare}>
+          <Pressable
+            style={[s.actionBtn, { borderBottomColor: colors.borderLight }]}
+            onPress={handleShare}
+            accessibilityRole="button"
+            accessibilityLabel="Share ticket"
+          >
             <View style={[s.actionIcon, { backgroundColor: colors.secondary + '12' }]}>
               <Ionicons name="share-outline" size={18} color={colors.secondary} />
             </View>
@@ -365,7 +392,12 @@ export default function TicketDetailScreen() {
           </Pressable>
 
           {(isActive || isScanned) && (
-            <Pressable style={[s.actionBtn, { borderBottomColor: colors.borderLight }]} onPress={handlePrint}>
+            <Pressable
+              style={[s.actionBtn, { borderBottomColor: colors.borderLight }]}
+              onPress={handlePrint}
+              accessibilityRole="button"
+              accessibilityLabel="Print ticket or badge"
+            >
               <View style={[s.actionIcon, { backgroundColor: colors.warning + '12' }]}>
                 <Ionicons name="print-outline" size={18} color={colors.warning} />
               </View>
@@ -375,7 +407,12 @@ export default function TicketDetailScreen() {
           )}
 
           {isActive && (
-            <Pressable style={[s.actionBtn, { borderBottomWidth: 0 }]} onPress={handleCancel}>
+            <Pressable
+              style={[s.actionBtn, { borderBottomWidth: 0 }]}
+              onPress={handleCancel}
+              accessibilityRole="button"
+              accessibilityLabel="Cancel ticket"
+            >
               <View style={[s.actionIcon, { backgroundColor: colors.error + '12' }]}>
                 <Ionicons name="close-circle-outline" size={18} color={colors.error} />
               </View>
