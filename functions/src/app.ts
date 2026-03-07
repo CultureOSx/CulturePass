@@ -512,6 +512,7 @@ const users: AppUser[] = [
     bio: 'Building human + AI community experiences.',
     location: 'Sydney, Australia',
     culturePassId: 'CP-U1',
+    createdAt: '2026-03-07T00:00:00Z',
     socialLinks: { instagram: 'ramanarc' },
   },
 ];
@@ -522,11 +523,11 @@ const events: AppEvent[] = [
 ];
 
 const profiles: AppProfile[] = [
-  { id: 'c1', name: 'Sydney Startup Circle', entityType: 'community', category: 'Tech', city: 'Sydney', country: 'Australia', description: 'Founders and builders community.', members: 850, verified: true },
-  { id: 'b1', name: 'RamanArc Studios', entityType: 'business', category: 'Studio', city: 'Sydney', country: 'Australia', description: 'Digital experiences for culture + community.', followers: 450, verified: true },
-  { id: 'v1', name: 'Parramatta Library', entityType: 'venue', category: 'Library', city: 'Sydney', country: 'Australia', description: 'Council library and community hub.', verified: true },
-  { id: 'v2', name: 'Melbourne Aquatic Centre', entityType: 'venue', category: 'Aquatic Centre', city: 'Melbourne', country: 'Australia', description: 'Public aquatic centre with swim programs.', verified: true },
-  { id: 'v3', name: 'Brisbane Community Hall', entityType: 'venue', category: 'Community Centre', city: 'Brisbane', country: 'Australia', description: 'Community events and youth programs.', verified: true },
+  { id: 'c1', name: 'Sydney Startup Circle', entityType: 'community', category: 'Tech', city: 'Sydney', country: 'Australia', description: 'Founders and builders community.', membersCount: 850, isVerified: true, createdAt: '2026-03-07T00:00:00Z', updatedAt: '2026-03-07T00:00:00Z' },
+  { id: 'b1', name: 'RamanArc Studios', entityType: 'business', category: 'Studio', city: 'Sydney', country: 'Australia', description: 'Digital experiences for culture + community.', followersCount: 450, isVerified: true, createdAt: '2026-03-07T00:00:00Z', updatedAt: '2026-03-07T00:00:00Z', membersCount: 50 },
+  { id: 'v1', name: 'Parramatta Library', entityType: 'venue', category: 'Library', city: 'Sydney', country: 'Australia', description: 'Council library and community hub.', isVerified: true, createdAt: '2026-03-07T00:00:00Z', updatedAt: '2026-03-07T00:00:00Z', membersCount: 100 },
+  { id: 'v2', name: 'Melbourne Aquatic Centre', entityType: 'venue', category: 'Aquatic Centre', city: 'Melbourne', country: 'Australia', description: 'Public aquatic centre with swim programs.', isVerified: true, createdAt: '2026-03-07T00:00:00Z', updatedAt: '2026-03-07T00:00:00Z', membersCount: 150 },
+  { id: 'v3', name: 'Brisbane Community Hall', entityType: 'venue', category: 'Community Centre', city: 'Brisbane', country: 'Australia', description: 'Community events and youth programs.', isVerified: true, createdAt: '2026-03-07T00:00:00Z', updatedAt: '2026-03-07T00:00:00Z', membersCount: 75 },
 ];
 
 const councils: AppCouncil[] = [
@@ -1203,7 +1204,7 @@ const fallbackEvents: FirestoreEvent[] = events.map((event) => ({
   imageUrl: event.imageUrl,
   imageColor: event.imageColor,
   category: event.category ?? event.communityTag ?? 'Culture',
-  organizer: event.organizer,
+  // organizer: event.organizer, // removed, not in AppEvent
   organizerId: event.organizerId,
   organizerReputationScore: event.organizerReputationScore,
   capacity: event.capacity,
@@ -1735,7 +1736,7 @@ function getSearchCorpus(): SearchableItem[] {
       id: profile.id,
       type: 'community',
       title: profile.name,
-      subtitle: `${profile.category} · ${profile.members ?? 0} members`,
+      subtitle: `${profile.category} · ${profile.membersCount ?? 0} members`,
       description: profile.description,
       city: profile.city,
       country: profile.country,
@@ -1967,14 +1968,14 @@ app.post('/api/admin/seed', async (req, res) => {
 
   // Seed communities / profiles
   const SEED_COMMUNITIES = [
-    { name: 'Kerala Cultural Society Sydney', entityType: 'community' as const, category: 'Cultural', city: 'Sydney', country: 'Australia', description: 'Connecting Malayali diaspora in Sydney through cultural events, Onam celebrations, and community support.', members: 1240, verified: true, ownerId: 'seed-org-1', rating: 4.8, cpid: 'CP-C-KCSSYD' },
-    { name: 'Tamil Sangam NSW', entityType: 'community' as const, category: 'Cultural', city: 'Sydney', country: 'Australia', description: 'Celebrating Tamil culture, language, and heritage in New South Wales.', members: 890, verified: true, ownerId: 'seed-org-2', rating: 4.7, cpid: 'CP-C-TSNNSW' },
-    { name: 'Chinese Community Sydney', entityType: 'community' as const, category: 'Cultural', city: 'Sydney', country: 'Australia', description: 'Fostering connections across Chinese-Australian communities in greater Sydney.', members: 3200, verified: true, ownerId: 'seed-org-5', rating: 4.9, cpid: 'CP-C-CCSSYD' },
-    { name: 'Filipino-Australian Network', entityType: 'community' as const, category: 'Social', city: 'Sydney', country: 'Australia', description: 'Building friendship and community among Filipino Australians through events and mutual support.', members: 650, verified: true, ownerId: 'seed-org-4', rating: 4.6, cpid: 'CP-C-FANSYD' },
-    { name: 'African Diaspora Melbourne', entityType: 'community' as const, category: 'Cultural', city: 'Melbourne', country: 'Australia', description: 'Celebrating the rich and diverse cultures of the African continent in Melbourne.', members: 780, verified: false, ownerId: 'seed-org-6', rating: 4.5, cpid: 'CP-C-ADMMLB' },
-    { name: 'South Asian Hub Melbourne', entityType: 'community' as const, category: 'Cultural', city: 'Melbourne', country: 'Australia', description: 'A welcoming space for Indian, Pakistani, Sri Lankan, and Bangladeshi communities in Melbourne.', members: 2100, verified: true, ownerId: 'seed-org-9', rating: 4.8, cpid: 'CP-C-SAHMML' },
-    { name: 'Pacific Community Queensland', entityType: 'community' as const, category: 'Cultural', city: 'Brisbane', country: 'Australia', description: 'Connecting Pacific Islander communities across Queensland, from Brisbane to the Gold Coast.', members: 540, verified: true, ownerId: 'seed-org-12', rating: 4.7, cpid: 'CP-C-PCQBRB' },
-    { name: 'Hellenic Community NSW', entityType: 'community' as const, category: 'Heritage', city: 'Sydney', country: 'Australia', description: 'Preserving Greek heritage and connecting Greek Australians across New South Wales.', members: 1560, verified: true, ownerId: 'seed-org-7', rating: 4.9, cpid: 'CP-C-HCNNSW' },
+    { name: 'Kerala Cultural Society Sydney', entityType: 'community' as const, category: 'Cultural', city: 'Sydney', country: 'Australia', description: 'Connecting Malayali diaspora in Sydney through cultural events, Onam celebrations, and community support.', membersCount: 1240, isVerified: true, ownerId: 'seed-org-1', rating: 4.8, cpid: 'CP-C-KCSSYD', createdAt: '2026-03-07T00:00:00Z', updatedAt: '2026-03-07T00:00:00Z' },
+    { name: 'Tamil Sangam NSW', entityType: 'community' as const, category: 'Cultural', city: 'Sydney', country: 'Australia', description: 'Celebrating Tamil culture, language, and heritage in New South Wales.', membersCount: 890, isVerified: true, ownerId: 'seed-org-2', rating: 4.7, cpid: 'CP-C-TSNNSW', createdAt: '2026-03-07T00:00:00Z', updatedAt: '2026-03-07T00:00:00Z' },
+    { name: 'Chinese Community Sydney', entityType: 'community' as const, category: 'Cultural', city: 'Sydney', country: 'Australia', description: 'Fostering connections across Chinese-Australian communities in greater Sydney.', membersCount: 3200, isVerified: true, ownerId: 'seed-org-5', rating: 4.9, cpid: 'CP-C-CCSSYD', createdAt: '2026-03-07T00:00:00Z', updatedAt: '2026-03-07T00:00:00Z' },
+    { name: 'Filipino-Australian Network', entityType: 'community' as const, category: 'Social', city: 'Sydney', country: 'Australia', description: 'Building friendship and community among Filipino Australians through events and mutual support.', membersCount: 650, isVerified: true, ownerId: 'seed-org-4', rating: 4.6, cpid: 'CP-C-FANSYD', createdAt: '2026-03-07T00:00:00Z', updatedAt: '2026-03-07T00:00:00Z' },
+    { name: 'African Diaspora Melbourne', entityType: 'community' as const, category: 'Cultural', city: 'Melbourne', country: 'Australia', description: 'Celebrating the rich and diverse cultures of the African continent in Melbourne.', membersCount: 780, isVerified: false, ownerId: 'seed-org-6', rating: 4.5, cpid: 'CP-C-ADMMLB', createdAt: '2026-03-07T00:00:00Z', updatedAt: '2026-03-07T00:00:00Z' },
+    { name: 'South Asian Hub Melbourne', entityType: 'community' as const, category: 'Cultural', city: 'Melbourne', country: 'Australia', description: 'A welcoming space for Indian, Pakistani, Sri Lankan, and Bangladeshi communities in Melbourne.', membersCount: 2100, isVerified: true, ownerId: 'seed-org-9', rating: 4.8, cpid: 'CP-C-SAHMML', createdAt: '2026-03-07T00:00:00Z', updatedAt: '2026-03-07T00:00:00Z' },
+    { name: 'Pacific Community Queensland', entityType: 'community' as const, category: 'Cultural', city: 'Brisbane', country: 'Australia', description: 'Connecting Pacific Islander communities across Queensland, from Brisbane to the Gold Coast.', membersCount: 540, isVerified: true, ownerId: 'seed-org-12', rating: 4.7, cpid: 'CP-C-PCQBRB', createdAt: '2026-03-07T00:00:00Z', updatedAt: '2026-03-07T00:00:00Z' },
+    { name: 'Hellenic Community NSW', entityType: 'community' as const, category: 'Heritage', city: 'Sydney', country: 'Australia', description: 'Preserving Greek heritage and connecting Greek Australians across New South Wales.', membersCount: 1560, isVerified: true, ownerId: 'seed-org-7', rating: 4.9, cpid: 'CP-C-HCNNSW', createdAt: '2026-03-07T00:00:00Z', updatedAt: '2026-03-07T00:00:00Z' },
   ];
 
   try {
@@ -2113,7 +2114,7 @@ app.post('/api/events', requireAuth, requireRole('organizer', 'admin'), moderati
       imageUrl: b.imageUrl ? String(b.imageUrl) : undefined,
       priceCents: b.priceCents ? Number(b.priceCents) : 0,
       organizerId: req.user!.id,
-      organizer: req.user!.username,
+      // organizer: req.user!.username, // removed, not in AppEvent
       isFree: b.isFree ?? false,
       isFeatured: b.isFeatured ?? false,
     };
