@@ -206,14 +206,14 @@ export default function LoginScreen() {
               hitSlop={8}
             >
               <Text style={[styles.forgotText, { color: isDesktop ? colors.primary : colors.warning }]}>Forgot Password?</Text>
-            <Pressable
-              style={styles.switchRow}
-              onPress={() => router.replace('/login/signup')}
-              accessibilityRole="link"
-              accessibilityLabel="Don't have an account? Sign up"
-            >
-              <Text style={[styles.switchText, { color: colors.textInverse + 'D9' }]}>Don't have an account? <Text style={[styles.switchLink, { color: colors.warning }]}>Sign Up</Text></Text>
             </Pressable>
+          </View>
+          <Input
+            placeholder="Your password"
+            leftIcon="lock-closed-outline"
+            value={password}
+            onChangeText={(v) => { setPassword(v); if (error) setError(''); }}
+            secureTextEntry
             passwordToggle
             autoComplete="current-password"
             textContentType="password"

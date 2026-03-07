@@ -150,7 +150,13 @@ export function WebSidebar() {
   const bg = colors.surface;
   const border = colors.border;
 
-  const handleNotifications = () => router.push('/notifications');
+  const handleNotifications = () => {
+    if (isAuthenticated) {
+      router.push('/notifications');
+    } else {
+      router.push('/(onboarding)/login?redirectTo=%2Fnotifications');
+    }
+  };
   const handleMap = () => router.push('/map');
   const handleSignUp = () => router.push('/(onboarding)/signup');
 
@@ -283,14 +289,16 @@ export function WebSidebar() {
         >
           <Ionicons name="map-outline" size={20} color="#2EC4B6" />
         </Pressable>
-        <Pressable
-          aria-label="Sign Up"
-          tabIndex={0}
-          style={[styles.signInBtn, { backgroundColor: '#FF5E5B', borderRadius: 10 }]}
-          onPress={handleSignUp}
-        >
-          <Text style={[styles.signInText, { color: '#fff' }]}>Sign Up</Text>
-        </Pressable>
+        {!isAuthenticated && (
+          <Pressable
+            aria-label="Sign Up"
+            tabIndex={0}
+            style={[styles.signInBtn, { backgroundColor: '#FF5E5B', borderRadius: 10 }]}
+            onPress={handleSignUp}
+          >
+            <Text style={[styles.signInText, { color: '#fff' }]}>Sign Up</Text>
+          </Pressable>
+        )}
       </SectionGroup>
 
       {/* User section */}

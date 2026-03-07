@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import Head from 'expo-router/head';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, gradients } from '@/constants/theme';
+import { gradients } from '@/constants/theme';
 import { useState } from 'react';
 import * as Haptics from 'expo-haptics';
 import { auth as firebaseAuth } from '@/lib/firebase';
@@ -141,22 +141,22 @@ export default function SignUpScreen() {
   };
 
   const formContent = (
-    <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
-        <View style={{ backgroundColor: '#FFFFFF', borderRadius: 24, padding: 32, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 16, elevation: 4, alignItems: 'center', width: 400, alignSelf: 'center', marginTop: 60 }}>
+    <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.scrollContent, isDesktop && styles.scrollContentDesktop]}>
+        <View style={[styles.formCard, isDesktop ? styles.formCardDesktop : { backgroundColor: colors.textInverse + '14' }]}>
           <View style={styles.logoRow}>
-            <View style={[styles.logoCircle, { backgroundColor: colors.textInverse + '33' }]}><Ionicons name="globe-outline" size={34} color={Colors.primary} /></View>
+            <View style={[styles.logoCircle, { backgroundColor: colors.textInverse + '33' }]}><Ionicons name="globe-outline" size={34} color={colors.textInverse} /></View>
             <Text style={[styles.brandLabel, { color: colors.textInverse + '99' }]}>culturepass.app</Text>
           </View>
-          <Text style={[styles.title, { color: colors.primary, fontSize: 28, fontWeight: '700', marginBottom: 6 }]}>Create Account</Text>
+          <Text style={[styles.title, { color: colors.textInverse }]}>Create Account</Text>
           <View style={styles.benefitsRow} accessibilityLabel="Free events, community access, and exclusive perks">
-            <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
-            <Text style={[styles.benefitText, { color: colors.textSecondary }]}>Free events</Text>
-            <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
-            <Text style={[styles.benefitText, { color: colors.textSecondary }]}>Community access</Text>
-            <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
-            <Text style={[styles.benefitText, { color: colors.textSecondary }]}>Exclusive perks</Text>
+            <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+            <Text style={[styles.benefitText, { color: colors.textInverse + 'CC' }]}>Free events</Text>
+            <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+            <Text style={[styles.benefitText, { color: colors.textInverse + 'CC' }]}>Community access</Text>
+            <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+            <Text style={[styles.benefitText, { color: colors.textInverse + 'CC' }]}>Exclusive perks</Text>
           </View>
-          <Text style={[styles.subtitle, { color: colors.textSecondary, fontSize: 15 }]}>Join thousands of community members celebrating culture together.</Text>
+          <Text style={[styles.subtitle, { color: colors.textInverse + 'CC' }]}>Join thousands of community members celebrating culture together.</Text>
 
           {error === 'email-exists' ? (
             <View style={[styles.errorBox, { backgroundColor: colors.error + '15' }]}>
@@ -324,7 +324,8 @@ export default function SignUpScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   header: { paddingHorizontal: 20, paddingVertical: 12 },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
+  scrollContent: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 16 },
+  scrollContentDesktop: { paddingHorizontal: 0, paddingTop: 0 },
   formCard: {
     borderRadius: 22,
     borderWidth: 1,
@@ -343,7 +344,7 @@ const styles = StyleSheet.create({
   brandLabel: { fontSize: 13, fontFamily: 'Poppins_600SemiBold', letterSpacing: 1.5, marginTop: 10 },
   title: { fontSize: 28, fontFamily: 'Poppins_700Bold', marginBottom: 8 },
   subtitle: { fontSize: 15, fontFamily: 'Poppins_400Regular', lineHeight: 22, marginBottom: 28 },
-  errorText: { fontSize: 14, fontFamily: 'Poppins_500Medium', color: Colors.error, textAlign: 'center', marginBottom: 16, backgroundColor: Colors.error + '15', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 12 },
+  errorText: { fontSize: 14, fontFamily: 'Poppins_500Medium', textAlign: 'center', marginBottom: 16, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 12 },
   form: { gap: 20, marginBottom: 28 },
   label: { fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
   submitBtn: { marginBottom: 20 },
