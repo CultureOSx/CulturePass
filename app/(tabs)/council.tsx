@@ -14,6 +14,7 @@ import type {
 import type { EventData } from '@/shared/schema';
 import { Button } from '@/components/ui/Button';
 import {
+  Alert,
   Pressable,
   TextInput,
   ActivityIndicator,
@@ -426,7 +427,8 @@ type CouncilCardProps = {
 
 function CouncilCard({ council, isAuthenticated, colors }: CouncilCardProps) {
   const [showDetails, setShowDetails] = useState(false);
-  const [claiming, setClaiming] = useState(false);
+  const [showClaimForm, setShowClaimForm] = useState(false);
+  const [isClaimSubmitting, setIsClaimSubmitting] = useState(false);
   const [claimEmail, setClaimEmail] = useState('');
   const [claimRole, setClaimRole] = useState('');
   const [claimNote, setClaimNote] = useState('');
@@ -435,22 +437,26 @@ function CouncilCard({ council, isAuthenticated, colors }: CouncilCardProps) {
 
   const handleFollow = async () => {
     if (!isAuthenticated) {
-      alert('Sign in required. Please sign in to follow councils.');
+      Alert.alert('Sign in required', 'Please sign in to follow councils.');
       return;
     }
-    await api.council.follow(council.id);
-    alert(`You are now following ${council.name}.`);
+    try {
+      await api.council.follow(council.id);
+      Alert.alert('Following', `You are now following ${council.name}.`);
+    } catch {
+      Alert.alert('Error', 'Could not follow council. Please try again.');
+    }
   };
 
   const handleClaim = async () => {
-    setClaiming(true);
+    setIsClaimSubmitting(true);
     try {
       await api.council.claim(council.id, { workEmail: claimEmail, roleTitle: claimRole, note: claimNote });
       setClaimStatus('Claim submitted!');
     } catch {
       setClaimStatus('Error submitting claim. Please try again.');
     }
-    setClaiming(false);
+    setIsClaimSubmitting(false);
   };
 
   return (
@@ -559,10 +565,10 @@ function CouncilCard({ council, isAuthenticated, colors }: CouncilCardProps) {
           <CouncilFacilities councilId={council.id} colors={colors} />
           <CouncilGrants councilId={council.id} colors={colors} />
           <CouncilLinks councilId={council.id} colors={colors} />
-          <Button onPress={() => setClaiming((c) => !c)} variant="ghost" size="sm">
-            {claiming ? 'Cancel Claim' : 'Claim this Council'}
+          <Button onPress={() => setShowClaimForm((v) => !v)} variant="ghost" size="sm">
+            {showClaimForm ? 'Cancel Claim' : 'Claim this Council'}
           </Button>
-          {claiming && (
+          {showClaimForm && (
             <View style={{ gap: 8 }}>
               <TextInput
                 value={claimEmail}
@@ -588,7 +594,7 @@ function CouncilCard({ council, isAuthenticated, colors }: CouncilCardProps) {
                 accessibilityLabel="Optional note for council claim"
                 style={{ backgroundColor: colors.surface, borderRadius: 10, padding: 10, fontSize: 14, fontFamily: 'Poppins_400Regular', color: colors.text, borderWidth: 1, borderColor: colors.borderLight }}
               />
-              <Button onPress={handleClaim} loading={claiming}>Submit Claim</Button>
+              <Button onPress={handleClaim} loading={isClaimSubmitting}>Submit Claim</Button>
               {claimStatus ? (
                 <Text style={{ color: claimStatus.startsWith('Error') ? colors.error : colors.success, fontFamily: 'Poppins_500Medium', fontSize: 13 }}>
                   {claimStatus}

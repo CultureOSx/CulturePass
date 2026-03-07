@@ -3,7 +3,7 @@
     "name": "CulturePass",
     "slug": "culturepass",
     "version": "1.1.0",
-    "description": "CulturePass \u2014 Your cultural lifestyle platform. Discover events, join diaspora communities, find local businesses, and celebrate diversity across Australia, New Zealand, UAE, UK & Canada.",
+    "description": "CulturePass — Your cultural lifestyle platform. Discover events, join diaspora communities, find local businesses, and celebrate diversity across Australia, New Zealand, UAE, UK & Canada.",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "culturepass",
@@ -82,12 +82,14 @@
         "READ_EXTERNAL_STORAGE",
         "VIBRATE",
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
       "favicon": "./assets/images/favicon.png",
-      "name": "CulturePass \u2014 Cultural Events & Communities",
+      "name": "CulturePass — Cultural Events & Communities",
       "shortName": "CulturePass",
       "description": "Discover cultural events, join diaspora communities, find local businesses, and celebrate diversity. CulturePass connects you with cultural experiences across Australia, New Zealand, UAE, UK & Canada.",
       "lang": "en-AU",
@@ -131,7 +133,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "315fb04d-254b-4915-9c5b-ca7faf0c54cf"
+        "projectId": "75b9744f-257a-43c6-8245-6bb75fe2b7e8"
       }
     },
     "owner": "airpizza"

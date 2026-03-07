@@ -1,7 +1,3 @@
-  // Explicit handlers for notification, map, and sign up
-  const handleNotifications = () => router.push('/notifications');
-  const handleMap = () => router.push('/map');
-  const handleSignUp = () => router.push('/(onboarding)/signup');
 import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, useColorScheme } from 'react-native';
 import { usePathname, router } from 'expo-router';
@@ -9,7 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/lib/auth';
 import { useRole } from '@/hooks/useRole';
-import { Colors } from '@/constants/theme';
+import { CultureTokens } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { Image } from 'expo-image';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -150,8 +147,12 @@ export function WebSidebar() {
     }
   })();
 
-  const bg = Platform.OS === 'web' ? '#FF3B30' : colors.surface;
+  const bg = colors.surface;
   const border = colors.border;
+
+  const handleNotifications = () => router.push('/notifications');
+  const handleMap = () => router.push('/map');
+  const handleSignUp = () => router.push('/(onboarding)/signup');
 
   if (collapsed) {
     return (
@@ -173,7 +174,7 @@ export function WebSidebar() {
               onPress={() => navigate(item.route)}
               accessibilityLabel={item.label}
             >
-              <Ionicons name={isActive(item) ? item.iconActive : item.icon} size={20} color={isActive(item) ? Colors.primary : (isDark ? 'rgba(232,244,255,0.56)' : 'rgba(0,22,40,0.56)')} />
+              <Ionicons name={isActive(item) ? item.iconActive : item.icon} size={20} color={isActive(item) ? colors.primary : (isDark ? 'rgba(232,244,255,0.56)' : 'rgba(0,22,40,0.56)')} />
               {(item.badge ?? 0) > 0 && <View style={styles.badgeDot}><Text style={styles.badgeDotText}>{item.badge}</Text></View>}
             </Pressable>
           ))}
@@ -385,7 +386,7 @@ function SidebarItem({ item, active, isDark, onPress }: {
         {isCommunity ? (
           <>
             <Ionicons name={active ? 'people-circle' : 'people-circle-outline'} size={20} color={iconColor} />
-            <Ionicons name={active ? 'heart' : 'heart-outline'} size={8} color={active ? Colors.primary : '#111'} style={{ position: 'absolute' }} />
+            <Ionicons name={active ? 'heart' : 'heart-outline'} size={8} color={active ? colors.primary : '#111'} style={{ position: 'absolute' }} />
           </>
         ) : (
           <Ionicons name={active ? item.iconActive : item.icon} size={20} color={iconColor} />
@@ -474,16 +475,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(44,42,114,0.15)', borderRadius: 4,
     paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 2,
   },
-  roleBadgeText: { fontSize: 10, fontFamily: 'Poppins_600SemiBold', color: Colors.primary },
+  roleBadgeText: { fontSize: 10, fontFamily: 'Poppins_600SemiBold', color: CultureTokens.indigo },
   badge: {
-    backgroundColor: Colors.error, borderRadius: 10,
+    backgroundColor: CultureTokens.coral, borderRadius: 10,
     minWidth: 18, height: 18, paddingHorizontal: 4,
     alignItems: 'center', justifyContent: 'center', marginLeft: 'auto' as unknown as number,
   },
   badgeText: { fontSize: 10, fontFamily: 'Poppins_700Bold', color: '#fff' },
   badgeDot: {
     position: 'absolute', top: 4, right: 4,
-    width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.error,
+    width: 8, height: 8, borderRadius: 4, backgroundColor: CultureTokens.coral,
     alignItems: 'center', justifyContent: 'center',
   },
   badgeDotText: { fontSize: 6, fontFamily: 'Poppins_700Bold', color: '#fff' },

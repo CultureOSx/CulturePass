@@ -8,7 +8,7 @@ import Head from 'expo-router/head';
 import * as Haptics from 'expo-haptics';
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient, getQueryFn } from '@/lib/query-client';
+import { queryClient, getQueryFn } from '@/lib/query-client';
 import { api } from '@/lib/api';
 import { FilterChipRow, FilterItem } from '@/components/FilterChip';
 import { useAuth } from '@/lib/auth';
@@ -106,8 +106,7 @@ export default function PerksTabScreen() {
       if (!userId) {
         throw new Error('Please sign in to redeem perks.');
       }
-      const res = await apiRequest('POST', `/api/perks/${perkId}/redeem`, {});
-      return res.json();
+      return api.perks.redeem(perkId);
     },
     onMutate: (perkId) => {
       // FIX: Set the specific perk being redeemed

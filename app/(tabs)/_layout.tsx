@@ -68,7 +68,7 @@ function CommunityUnityIcon({ focused, activeColor, color }: { focused: boolean;
       />
     </View>
   );
-// ...existing code...
+}
 
 // ---------------------------------------------------------------------------
 // Animated tab item — icon + label + active indicator
@@ -183,7 +183,6 @@ function TabItem({ tab, focused, color, activeColor, onPress, flex, isDesktopMen
     </Pressable>
   );
 }
-}
 
 // ---------------------------------------------------------------------------
 // Custom floating tab bar
@@ -293,31 +292,11 @@ function CustomTabBar({ state, navigation, position = 'bottom' }: CustomTabBarPr
 }
 
 // ---------------------------------------------------------------------------
-// Tab screens definition (shared between desktop + mobile)
-// ---------------------------------------------------------------------------
-function TabScreens() {
-  const { isOrganizer } = useRole();
-
-  return (
-    <>
-      <Tabs.Screen name="index"       options={{ title: 'Discover' }} />
-      <Tabs.Screen name="calendar"   options={{ title: 'Calendar' }} />
-      <Tabs.Screen name="communities" options={{ title: 'Community' }} />
-      <Tabs.Screen name="perks"      options={{ title: 'Perks' }} />
-      <Tabs.Screen name="profile"    options={{ title: 'Profile' }} />
-      <Tabs.Screen name="council"    options={{ href: null }} />
-      <Tabs.Screen name="explore"    options={{ href: null }} />
-      <Tabs.Screen name="directory"  options={{ href: null }} />
-      <Tabs.Screen name="dashboard"  options={{ href: isOrganizer ? undefined : null }} />
-    </>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Root layout
 // ---------------------------------------------------------------------------
 export default function TabLayout() {
   const { width } = useWindowDimensions();
+  const { isOrganizer } = useRole();
   const isWeb = Platform.OS === 'web';
   const isDesktop = isWeb && width >= 1024;
   const pathname = usePathname();
@@ -331,26 +310,29 @@ export default function TabLayout() {
     }
   }, [isWeb, pathname]);
 
-  // Desktop web: no sidebar, use top tab navigation for web-optimized parity
+  // Desktop web: fixed sidebar (240px) + Tabs with no visible tab bar
   if (isDesktop) {
     return (
       <QueryClientProvider client={queryClient}>
-        <View style={{ flex: 1, overflow: 'hidden' }}>
-          <Tabs
-            initialRouteName="index"
-            screenOptions={{ headerShown: false }}
-            tabBar={Platform.OS === 'web' ? undefined : (props) => <CustomTabBar {...props} position="top" />}
-          >
-            <Tabs.Screen name="index"       options={{ title: 'Discover' }} />
-            <Tabs.Screen name="calendar"   options={{ title: 'Calendar' }} />
-            <Tabs.Screen name="communities" options={{ title: 'Community' }} />
-            <Tabs.Screen name="perks"      options={{ title: 'Perks' }} />
-            <Tabs.Screen name="profile"    options={{ title: 'Profile' }} />
-            <Tabs.Screen name="council"    options={{ href: null }} />
-            <Tabs.Screen name="explore"    options={{ href: null }} />
-            <Tabs.Screen name="directory"  options={{ href: null }} />
-            <Tabs.Screen name="dashboard"  options={{ href: undefined }} />
-          </Tabs>
+        <View style={{ flex: 1, flexDirection: 'row', overflow: 'hidden' }}>
+          <WebSidebar />
+          <View style={{ flex: 1, overflow: 'hidden' }}>
+            <Tabs
+              initialRouteName="index"
+              screenOptions={{ headerShown: false }}
+              tabBar={() => null}
+            >
+              <Tabs.Screen name="index"       options={{ title: 'Discover' }} />
+              <Tabs.Screen name="calendar"   options={{ title: 'Calendar' }} />
+              <Tabs.Screen name="communities" options={{ title: 'Community' }} />
+              <Tabs.Screen name="perks"      options={{ title: 'Perks' }} />
+              <Tabs.Screen name="profile"    options={{ title: 'Profile' }} />
+              <Tabs.Screen name="council"    options={{ href: null }} />
+              <Tabs.Screen name="explore"    options={{ href: null }} />
+              <Tabs.Screen name="directory"  options={{ href: null }} />
+              <Tabs.Screen name="dashboard"  options={{ href: isOrganizer ? undefined : null }} />
+            </Tabs>
+          </View>
         </View>
       </QueryClientProvider>
     );
@@ -373,7 +355,7 @@ export default function TabLayout() {
           <Tabs.Screen name="council"    options={{ href: null }} />
           <Tabs.Screen name="explore"    options={{ href: null }} />
           <Tabs.Screen name="directory"  options={{ href: null }} />
-          <Tabs.Screen name="dashboard"  options={{ href: undefined }} />
+          <Tabs.Screen name="dashboard"  options={{ href: isOrganizer ? undefined : null }} />
         </Tabs>
       </View>
     </QueryClientProvider>

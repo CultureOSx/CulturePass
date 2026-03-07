@@ -17,10 +17,6 @@ import { useAuth } from '@/lib/auth';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 
 interface TicketRecord    { eventId: string }
-interface RsvpRecord      { eventId: string }
-interface LikeRecord      { eventId: string }
-interface CouncilSubRecord{ councilId: string }
-interface InterestRecord  { interestTag: string }
 type EventDataExtended    = EventData & { councilId?: string };
 
 const DAYS   = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -43,19 +39,6 @@ function toSafeDateKey(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
 }
 
-function weekdayIndex(day?: string): number | null {
-  if (!day) return null;
-  const map: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
-  return map[day.toLowerCase()] ?? null;
-}
-
-function nextDateForWeekday(weekday: number, from = new Date()): Date {
-  const date = new Date(from);
-  const distance = (weekday - date.getDay() + 7) % 7;
-  date.setDate(date.getDate() + distance);
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
 
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
@@ -95,12 +78,6 @@ export default function CalendarScreen() {
     enabled: !!userId,
   });
 
-  // RSVPs, likes, council subs, and interests are not yet available as dedicated
-  // API endpoints. Stub them as empty until backend routes are added.
-  const rsvps: RsvpRecord[] = [];
-  const likes: LikeRecord[] = [];
-  const councilSubs: CouncilSubRecord[] = [];
-  const interests: InterestRecord[] = [];
   const tickets: TicketRecord[] = ticketsRaw;
 
   // Merge council events into allEvents (deduplicate by id)
@@ -116,43 +93,9 @@ export default function CalendarScreen() {
     return merged;
   }, [allEventsRaw, councilEvents])
 
-  // Tab filtering
-  const [tab, setTab] = useState("All")
-  const [filter, setFilter] = useState("All")
-  const [showMap, setShowMap] = useState(false)
+  // Ticket filter — show only events the user has tickets for
+  const filteredEvents = useMemo<EventDataExtended[]>(() => allEvents, [allEvents]);
 
-  const filteredEvents = useMemo(() => {
-    let events: EventDataExtended[] = allEvents
-    if (filter !== "All") {
-      events = events.filter(e => e.category === filter || (e.councilId != null && filter === "Council"))
-    }
-    if (tab === "My Events" && isAuthenticated) {
-      const rsvpIds = new Set(rsvps.map(r => r.eventId))
-      events = events.filter(e => rsvpIds.has(e.id))
-    }
-    if (tab === "Tickets" && isAuthenticated) {
-      const ticketIds = new Set(tickets.map(t => t.eventId))
-      events = events.filter(e => ticketIds.has(e.id))
-    }
-    if (tab === "Council" && isAuthenticated) {
-      const councilIds = new Set(councilSubs.map(s => s.councilId))
-      events = events.filter(e => e.councilId != null && councilIds.has(e.councilId))
-    }
-    if (tab === "Interests" && isAuthenticated) {
-      const likeIds = new Set(likes.map(l => l.eventId))
-      const interestTags = new Set(interests.map(i => i.interestTag))
-      events = events.filter(e => likeIds.has(e.id) || (e.tags && e.tags.some((tag: string) => interestTags.has(tag))))
-    }
-    return events
-  }, [tab, filter, allEvents, tickets, rsvps, likes, councilSubs, interests, isAuthenticated])
-
-  const eventsForSelectedDate = useMemo(() => {
-    if (!selectedDate) return filteredEvents
-    return filteredEvents.filter(e => {
-      const eventDate = toSafeDateKey(e.date);
-      return eventDate === selectedDate;
-    });
-  }, [filteredEvents, selectedDate])
   // Calendar grid variables
   const daysInMonth = getDaysInMonth(currentYear, currentMonth);
   const firstDayOfMonth = getFirstDayOfMonth(currentYear, currentMonth);

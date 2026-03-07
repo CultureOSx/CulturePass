@@ -13,6 +13,7 @@ import { useColors } from '@/hooks/useColors';
 import * as Haptics from 'expo-haptics';
 import { useQuery } from '@tanstack/react-query';
 import { useState, useMemo, useCallback } from 'react';
+import { api } from '@/lib/api';
 import type { Profile } from '@/shared/schema';
 import { FilterChipRow } from '@/components/FilterChip';
 import { EntityTypeColors } from '@/constants/theme';
@@ -57,10 +58,20 @@ function FeaturedCard({ profile }: { profile: Profile }) {
   const joined = isCommunityJoined(profile.id);
   const meta   = TYPE_META[profile.entityType] ?? { color: colors.primary, icon: 'people' as const };
 
+  const handlePress = () => {
+    if (profile.entityType === 'community') {
+      router.push({ pathname: '/community/[id]', params: { id: profile.id } });
+    } else {
+      router.push({ pathname: '/profile/[id]', params: { id: profile.id } });
+    }
+  };
+
   return (
     <Pressable
       style={[fc.card, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
-      onPress={() => router.push({ pathname: '/profile/[id]', params: { id: profile.id } })}
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={`${profile.name}, ${profile.entityType}`}
     >
       <LinearGradient
         colors={[meta.color + '22', meta.color + '06', 'transparent']}
@@ -111,10 +122,20 @@ function CommunityCard({ profile }: { profile: Profile }) {
   const joined = isCommunityJoined(profile.id);
   const meta   = TYPE_META[profile.entityType] ?? { color: colors.primary, icon: 'people' as const };
 
+  const handlePress = () => {
+    if (profile.entityType === 'community') {
+      router.push({ pathname: '/community/[id]', params: { id: profile.id } });
+    } else {
+      router.push({ pathname: '/profile/[id]', params: { id: profile.id } });
+    }
+  };
+
   return (
     <Pressable
       style={({ pressed }) => [lc.card, { backgroundColor: colors.surface, borderColor: colors.borderLight, opacity: pressed ? 0.88 : 1 }]}
-      onPress={() => router.push({ pathname: '/profile/[id]', params: { id: profile.id } })}
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={`${profile.name}, ${profile.entityType}${profile.city ? `, ${profile.city}` : ''}`}
     >
       <View style={[lc.iconBox, { backgroundColor: meta.color + '14' }]}>
         <Ionicons name={meta.icon} size={20} color={meta.color} />
@@ -179,7 +200,11 @@ export default function CommunitiesScreen() {
   const [selectedType,  setSelectedType]  = useState('all');
   const [searchFocused, setSearchFocused] = useState(false);
 
-  const { data: allProfiles, isLoading, error: profilesError, refetch: refetchProfiles } = useQuery<Profile[]>({ queryKey: ['/api/profiles'] });
+  const { data: allProfiles, isLoading, error: profilesError, refetch: refetchProfiles } = useQuery<Profile[]>({
+    queryKey: ['/api/profiles'],
+    queryFn: () => api.profiles.list(),
+    staleTime: 60_000,
+  });
   const { data: councilData } = useCouncil();
   const council = councilData?.council;
   const facilities = councilData?.facilities ?? [];
@@ -228,7 +253,7 @@ export default function CommunitiesScreen() {
   }, [refetchProfiles]);
 
   const handleSelectType = useCallback((id: string) => {
-    Haptics.selectionAsync();
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     setSelectedType(id);
   }, []);
 

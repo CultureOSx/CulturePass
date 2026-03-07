@@ -37,7 +37,7 @@ import EventCard from '@/components/Discover/EventCard';
 import CategoryCard from '@/components/Discover/CategoryCard';
 import CommunityCard from '@/components/Discover/CommunityCard';
 import CityCard from '@/components/Discover/CityCard';
-import { Colors, CategoryColors, gradients } from '@/constants/theme';
+import { CultureTokens, CategoryColors, gradients } from '@/constants/theme';
 import { FilterChip } from '@/components/FilterChip';
 import SectionHeader from '@/components/Discover/SectionHeader';
 import SpotlightCard, { SpotlightItem } from '@/components/Discover/SpotlightCard';
@@ -51,12 +51,12 @@ import { useLayout } from '@/hooks/useLayout';
 const isWeb = Platform.OS === 'web';
 
 const superAppSections = [
-  { id: 'movies', label: 'Movies', icon: 'film', color: Colors.error, route: '/movies' },
-  { id: 'restaurants', label: 'Dining', icon: 'restaurant', color: Colors.accent, route: '/restaurants' },
-  { id: 'activities', label: 'Activities', icon: 'compass', color: Colors.success, route: '/activities' },
-  { id: 'shopping', label: 'Shopping', icon: 'bag-handle', color: CategoryColors.shopping, route: '/shopping' },
-  { id: 'events', label: 'Events', icon: 'calendar', color: Colors.tint, route: '/(tabs)/explore' },
-  { id: 'directory', label: 'Directory', icon: 'storefront', color: Colors.secondary, route: '/(tabs)/directory' },
+  { id: 'movies',      label: 'Movies',     icon: 'film',        color: CultureTokens.coral,   route: '/movies' },
+  { id: 'restaurants', label: 'Dining',     icon: 'restaurant',  color: CultureTokens.saffron, route: '/restaurants' },
+  { id: 'activities',  label: 'Activities', icon: 'compass',     color: CultureTokens.teal,    route: '/activities' },
+  { id: 'shopping',    label: 'Shopping',   icon: 'bag-handle',  color: CategoryColors.shopping, route: '/shopping' },
+  { id: 'events',      label: 'Events',     icon: 'calendar',    color: CultureTokens.indigo,  route: '/(tabs)/explore' },
+  { id: 'directory',   label: 'Directory',  icon: 'storefront',  color: CultureTokens.teal,    route: '/(tabs)/directory' },
 ];
 
 const SECTION_ROUTES: Record<string, string> = {
@@ -347,7 +347,7 @@ export default function HomeScreen() {
         types[key].push({
           id: c.id,
           label: c.name?.split(' ')[0] || c.name || 'Community',
-          color: Colors.primary,
+          color: CultureTokens.indigo,
           emoji: c.iconEmoji,
           icon: 'people',
         });
@@ -640,21 +640,21 @@ export default function HomeScreen() {
         <Animated.View style={[styles.topBarBorder, headerBorderStyle]} pointerEvents="none" />
 
         <View style={styles.brandBlock}>
-          <Ionicons name="globe-outline" size={20} color={Colors.primary} />
+          <Ionicons name="globe-outline" size={20} color={colors.primary} />
           <View>
             <Text style={styles.brandName}>CulturePass</Text>
-            <Text style={[styles.brandUrl, { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: Colors.primary }]}>Belong Anywhere</Text>
+            <Text style={[styles.brandUrl, { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: colors.primary }]}>Belong Anywhere</Text>
           </View>
         </View>
         <View style={styles.topBarRight}>
           <Pressable style={styles.iconButton} onPress={() => router.push('/search')} testID="search-btn" accessibilityLabel="Search">
-            <Ionicons name="search" size={24} color={Colors.text} />
+            <Ionicons name="search" size={24} color={colors.text} />
           </Pressable>
           <Pressable style={styles.iconButton} onPress={() => pushSafe('/map')} testID="map-btn" accessibilityLabel="Events Map">
-            <Ionicons name="map-outline" size={24} color={Colors.text} />
+            <Ionicons name="map-outline" size={24} color={colors.text} />
           </Pressable>
           <Pressable style={styles.iconButton} onPress={openNotifications} testID="notifications-btn" accessibilityLabel="Notifications">
-            <Ionicons name="notifications-outline" size={24} color={Colors.text} />
+            <Ionicons name="notifications-outline" size={24} color={colors.text} />
             {isAuthenticated ? <View style={styles.notifDot} /> : null}
           </Pressable>
         </View>
@@ -721,7 +721,7 @@ export default function HomeScreen() {
         {council && (
           <View style={styles.civicCard}>
             <View style={styles.civicCardHeader}>
-              <Ionicons name="shield-checkmark-outline" size={16} color={Colors.primary} />
+              <Ionicons name="shield-checkmark-outline" size={16} color={colors.primary} />
               <Text style={styles.civicCardTitle}>{council.name}</Text>
             </View>
             <Text style={styles.civicCardSub}>
@@ -1028,10 +1028,10 @@ export default function HomeScreen() {
             <View style={styles.bannerDecoration2} />
             <View style={styles.plusBannerLeft}>
               <View style={styles.plusBannerIconWrap}>
-                <Ionicons name="star" size={20} color={Colors.gold} />
+                <Ionicons name="star" size={20} color={CultureTokens.gold} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.plusBannerTitle}>CulturePass <Text style={{ color: Colors.gold }}>PRO</Text></Text>
+                <Text style={styles.plusBannerTitle}>CulturePass <Text style={{ color: CultureTokens.gold }}>PRO</Text></Text>
                 <Text style={styles.plusBannerSub}>2% cashback & exclusive VIP access</Text>
               </View>
             </View>

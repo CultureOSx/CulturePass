@@ -368,7 +368,7 @@ export default function ProfileScreen() {
             <Pressable
               style={[s.completeProfileCta, isDesktopWeb && s.webSection, { backgroundColor: colors.info + '0A', borderColor: colors.info + '2A' }]}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 router.push('/profile/edit');
               }}
             >
@@ -631,7 +631,7 @@ export default function ProfileScreen() {
             </Pressable>
             <Pressable
               style={[s.actionBtn, { backgroundColor: colors.surface }]}
-              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); handleReset(); }}
+              onPress={() => { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); handleReset(); }}
               accessibilityRole="button"
               accessibilityLabel="Reset app data"
             >
