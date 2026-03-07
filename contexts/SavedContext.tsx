@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useMemo, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, ReactNode, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -22,21 +22,31 @@ export function SavedProvider({ children }: { children: ReactNode }) {
   const [joinedCommunities, setJoinedCommunities] = useState<string[]>([]);
   const { userId } = useAuth();
 
-  // Load local cache first for instant startup
+  // FIX: track whether the server seed has completed so the local cache
+  // load never overwrites fresher server data (resolves the load/seed race).
+  const serverSeededRef = useRef(false);
+
+  // Load local cache first for instant startup — but skip if the server
+  // seed already ran (handles fast async resolution edge case).
   useEffect(() => {
     Promise.all([
       AsyncStorage.getItem(SAVED_EVENTS_KEY),
       AsyncStorage.getItem(JOINED_COMMUNITIES_KEY),
     ]).then(([events, communities]) => {
+      // FIX: only apply local cache if server hasn't already seeded state
+      if (serverSeededRef.current) return;
       if (events) setSavedEvents(JSON.parse(events) as string[]);
       if (communities) setJoinedCommunities(JSON.parse(communities) as string[]);
-    });
+    }).catch(() => {});
   }, []);
 
-  // Seed from server when user logs in — server is source of truth
+  // Seed from server when user logs in — server is source of truth.
   useEffect(() => {
     if (!userId) return;
     api.users.get(userId).then((user) => {
+      // FIX: mark seeded BEFORE setting state so the local cache effect
+      // (if it resolves after this) skips its write.
+      serverSeededRef.current = true;
       if (user.savedEvents?.length) {
         setSavedEvents(user.savedEvents);
         AsyncStorage.setItem(SAVED_EVENTS_KEY, JSON.stringify(user.savedEvents)).catch(() => {});
@@ -55,9 +65,20 @@ export function SavedProvider({ children }: { children: ReactNode }) {
       const isSaved = prev.includes(id);
       const next = isSaved ? prev.filter(e => e !== id) : [...prev, id];
       AsyncStorage.setItem(SAVED_EVENTS_KEY, JSON.stringify(next)).catch(() => {});
+
       if (userId) {
-        (isSaved ? api.events.unsave(id) : api.events.save(id)).catch(() => {});
+        // FIX: roll back optimistic state + cache on API failure instead of
+        // silently swallowing the error and leaving state desynced from server.
+        (isSaved ? api.events.unsave(id) : api.events.save(id)).catch(() => {
+          setSavedEvents(prev2 => {
+            // Revert: undo the optimistic change
+            const reverted = isSaved ? [...prev2, id] : prev2.filter(e => e !== id);
+            AsyncStorage.setItem(SAVED_EVENTS_KEY, JSON.stringify(reverted)).catch(() => {});
+            return reverted;
+          });
+        });
       }
+
       return next;
     });
   }, [userId]);
@@ -67,9 +88,18 @@ export function SavedProvider({ children }: { children: ReactNode }) {
       const isJoined = prev.includes(id);
       const next = isJoined ? prev.filter(c => c !== id) : [...prev, id];
       AsyncStorage.setItem(JOINED_COMMUNITIES_KEY, JSON.stringify(next)).catch(() => {});
+
       if (userId) {
-        (isJoined ? api.communities.leave(id) : api.communities.join(id)).catch(() => {});
+        // FIX: same rollback pattern as toggleSaveEvent
+        (isJoined ? api.communities.leave(id) : api.communities.join(id)).catch(() => {
+          setJoinedCommunities(prev2 => {
+            const reverted = isJoined ? [...prev2, id] : prev2.filter(c => c !== id);
+            AsyncStorage.setItem(JOINED_COMMUNITIES_KEY, JSON.stringify(reverted)).catch(() => {});
+            return reverted;
+          });
+        });
       }
+
       return next;
     });
   }, [userId]);

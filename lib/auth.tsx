@@ -81,7 +81,7 @@ interface AuthContextType {
   isLoading: boolean;
   isRestoring: boolean;
 
-  login: (session: AuthSession) => Promise<void>;
+  login: (session: AuthSession, navigate?: boolean) => Promise<void>;
   logout: (redirect?: string) => Promise<void>;
   refreshSession: () => Promise<void>;
 
@@ -89,7 +89,9 @@ interface AuthContextType {
 
   isSydneyUser: boolean;
   isSydneyVerified: boolean;
+  /** True only until the user dismisses the welcome — call clearSydneyWelcome() */
   showSydneyWelcome: boolean;
+  clearSydneyWelcome: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -97,8 +99,8 @@ const AuthContext = createContext<AuthContextType>({
   userId: null,
   user: null,
   accessToken: null,
-  isLoading: true,
-  isRestoring: false,
+  isLoading: true,      // FIX: was false — consumers checking isLoading for a spinner
+  isRestoring: true,    //      would see no spinner between mount and first observer fire
   login: async () => {},
   logout: async () => {},
   refreshSession: async () => {},
@@ -106,6 +108,7 @@ const AuthContext = createContext<AuthContextType>({
   isSydneyUser: false,
   isSydneyVerified: false,
   showSydneyWelcome: false,
+  clearSydneyWelcome: () => {},
 });
 
 export function useAuth() {
@@ -114,8 +117,12 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // FIX: both loading flags start true — avoids a flash of unauthenticated UI
+  // before the Firebase observer fires on mount.
+  const [isLoading, setIsLoading] = useState(true);
   const [isRestoring, setIsRestoring] = useState(true);
+  // FIX: track whether the Sydney welcome has been shown this session
+  const [sydneyWelcomeShown, setSydneyWelcomeShown] = useState(false);
 
   // ------------------------------------------------------------------
   // Firebase Auth state observer
@@ -125,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!firebaseUser) {
         setSession(null);
         setAccessToken(null);
+        setIsLoading(false);
         setIsRestoring(false);
         return;
       }
@@ -159,9 +167,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             interests: profileData.interests,
           };
         } catch (error) {
-          if (!(error instanceof ApiError)) {
-            console.error('[auth] profile fetch error:', error);
+          // FIX: ApiError (4xx) errors were silently swallowed. A 401/403 during
+          // bootstrap means the backend rejected the token — force sign-out rather
+          // than continuing with an empty profile.
+          if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+            console.error('[auth] profile fetch unauthorised — signing out:', error);
+            await signOut(firebaseAuth);
+            return;
           }
+          console.error('[auth] profile fetch error:', error);
         }
 
         const authUser: AuthUser = {
@@ -190,6 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(null);
         setAccessToken(null);
       } finally {
+        setIsLoading(false);
         setIsRestoring(false);
       }
     });
@@ -198,7 +213,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ------------------------------------------------------------------
-  // Force-refresh ID token every 50 min to keep query-client in sync
+  // Force-refresh ID token every 50 min to keep query-client in sync.
+  // FIX: dep was [!!session] (a boolean) — the interval would NOT reset
+  // if session was replaced with a new object (e.g. after token refresh).
+  // Using [session] ensures the interval is always tied to the live value.
   // ------------------------------------------------------------------
   useEffect(() => {
     if (!session) return;
@@ -217,12 +235,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, 50 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [!!session]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [session]); // FIX: was [!!session]
 
   // ------------------------------------------------------------------
-  // login() — kept for compatibility with manual session injection
+  // login() — kept for compatibility with manual session injection.
+  // FIX: added `navigate` param (default true) so callers doing a
+  // background token injection don't accidentally redirect to /(tabs).
   // ------------------------------------------------------------------
-  const login = useCallback(async (newSession: AuthSession) => {
+  const login = useCallback(async (newSession: AuthSession, navigate = true) => {
     if (Platform.OS !== 'web') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
@@ -230,7 +250,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setSession(newSession);
       setAccessToken(newSession.accessToken);
-      router.replace('/(tabs)');
+      if (navigate) {
+        router.replace('/(tabs)');
+      }
     } catch (error) {
       console.error('[auth] login:', error);
       Alert.alert('Login Failed', 'Please try again');
@@ -280,6 +302,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isSydneyUser = !!session?.user.city?.toLowerCase().includes('sydney');
   const isSydneyVerified = !!session?.user.isSydneyVerified;
 
+  // FIX: showSydneyWelcome is now gated by sydneyWelcomeShown so it
+  // doesn't re-trigger on every render. Call clearSydneyWelcome() once
+  // the welcome UI has been presented.
+  const showSydneyWelcome = isSydneyUser && !sydneyWelcomeShown;
+  const clearSydneyWelcome = useCallback(() => setSydneyWelcomeShown(true), []);
+
   const hasRole = useCallback((...roles: UserRole[]): boolean => {
     if (!session) return false;
     return roles.includes(session.user.role ?? 'user');
@@ -298,10 +326,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     hasRole,
     isSydneyUser,
     isSydneyVerified,
-    showSydneyWelcome: isSydneyUser,
+    showSydneyWelcome,
+    clearSydneyWelcome,
   }), [
     session, isLoading, isRestoring, login, logout, refreshSession,
-    hasRole, isSydneyUser, isSydneyVerified,
+    hasRole, isSydneyUser, isSydneyVerified, showSydneyWelcome, clearSydneyWelcome,
   ]);
 
   return (

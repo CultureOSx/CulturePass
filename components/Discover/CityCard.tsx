@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -44,7 +44,15 @@ function CityCard({ city, onPress, width }: CityCardProps) {
   const colors = useColors();
   const cityPrimaryImage = city.imageUrl || CITY_IMAGES[city.name] || FALLBACK_IMAGE;
   const cityFallbackImage = CITY_FALLBACK_IMAGES[city.name];
+
   const [imageUri, setImageUri] = useState(cityPrimaryImage);
+
+  // FIX: reset imageUri when the city prop changes (e.g. parent passes a
+  // new city with a different imageUrl). useState initial value only runs
+  // once — without this effect, a remounted/recycled card shows a stale image.
+  useEffect(() => {
+    setImageUri(cityPrimaryImage);
+  }, [cityPrimaryImage]);
 
   return (
     <Pressable
@@ -77,8 +85,11 @@ function CityCard({ city, onPress, width }: CityCardProps) {
         style={StyleSheet.absoluteFillObject}
       />
       <View style={styles.content}>
-        <Text style={styles.cityName}>{city.name}</Text>
-        <Text style={styles.country}>{city.country}</Text>
+        {/* FIX: color was referenced in comments but never applied — both
+            text elements were rendering in the system default (black),
+            invisible against the dark gradient overlay. */}
+        <Text style={[styles.cityName, { color: '#FFFFFF' }]}>{city.name}</Text>
+        <Text style={[styles.country, { color: 'rgba(255,255,255,0.8)' }]}>{city.country}</Text>
       </View>
     </Pressable>
   );
@@ -90,7 +101,6 @@ const styles = StyleSheet.create({
     height: 130,
     borderRadius: 20,
     overflow: 'hidden',
-    // backgroundColor applied inline
   },
   content: {
     position: 'absolute',
@@ -102,15 +112,12 @@ const styles = StyleSheet.create({
   cityName: {
     fontSize: 16,
     fontFamily: 'Poppins_700Bold',
-    // color inline
   },
   country: {
     fontSize: 11,
     fontFamily: 'Poppins_500Medium',
     marginTop: 1,
-    // color inline
   },
 });
 
-// ⚡ Bolt Optimization: Added React.memo() to prevent unnecessary re-renders in lists
 export default React.memo(CityCard);

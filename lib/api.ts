@@ -11,7 +11,7 @@
  *   const events = await api.events.list({ city: 'Sydney', page: 1 });
  */
 
-import { apiRequest, getApiUrl } from './query-client';
+import { apiRequest, getApiUrl, ApiError as QueryClientApiError } from './query-client';
 import type {
   EventData,
   User,
@@ -297,22 +297,22 @@ export interface AdminAuditLog {
 }
 
 // ---------------------------------------------------------------------------
-// Structured error — always carry HTTP status for conditional handling
+// Structured error — always carry HTTP status for conditional handling.
+//
+// FIX: this file previously defined its own ApiError class in parallel with
+// the one in query-client.ts. This meant `instanceof ApiError` checks in
+// auth.tsx (which imports from '@/lib/api') and checks in query-client.ts
+// used two DIFFERENT classes — so cross-module instanceof checks always
+// returned false.
+//
+// Solution: re-export the single canonical ApiError from query-client and
+// extend it here with the convenience getters. Both files now share one class.
 // ---------------------------------------------------------------------------
-export class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    message: string,
-    public readonly body?: string
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
-
-  get isNotFound() { return this.status === 404; }
+export class ApiError extends QueryClientApiError {
+  get isNotFound()     { return this.status === 404; }
   get isUnauthorized() { return this.status === 401; }
-  get isForbidden() { return this.status === 403; }
-  get isServerError() { return this.status >= 500; }
+  get isForbidden()    { return this.status === 403; }
+  get isServerError()  { return this.status >= 500; }
   get isNetworkError() { return this.status === 0; }
 }
 
@@ -324,7 +324,7 @@ async function parseJson<T>(res: Response): Promise<T> {
   try {
     return JSON.parse(text) as T;
   } catch {
-    throw new ApiError(res.status, `Non-JSON response: ${text.slice(0, 200)}`);
+    throw new ApiError(res.status, `Non-JSON response: ${text.slice(0, 200)}`, text);
   }
 }
 
@@ -338,11 +338,16 @@ async function request<T>(
     return parseJson<T>(res);
   } catch (err) {
     if (err instanceof ApiError) throw err;
+    // FIX: also catch the base QueryClientApiError in case it was thrown
+    // by apiRequest/throwIfResNotOk before reaching parseJson
+    if (err instanceof QueryClientApiError) {
+      throw new ApiError(err.status, err.message, err.response);
+    }
     if (err instanceof Error) {
       const match = err.message.match(/^(\d{3}):\s*(.*)/s);
-      if (match) throw new ApiError(parseInt(match[1]), match[2]);
+      if (match) throw new ApiError(parseInt(match[1]), match[2], '');
     }
-    throw new ApiError(0, err instanceof Error ? err.message : 'Network error');
+    throw new ApiError(0, err instanceof Error ? err.message : 'Network error', '');
   }
 }
 
@@ -519,7 +524,14 @@ const notifications = {
     limit?: number;
     metadata?: Record<string, unknown>;
   }) =>
-    request<{ dryRun: boolean; targetedCount: number; audiencePreview: Array<{ userId: string; city: string; country: string }>; idempotentReplay?: boolean; approvalToken?: string; approvalExpiresAt?: string }>(
+    request<{
+      dryRun: boolean;
+      targetedCount: number;
+      audiencePreview: Array<{ userId: string; city: string; country: string }>;
+      idempotentReplay?: boolean;
+      approvalToken?: string;
+      approvalExpiresAt?: string;
+    }>(
       'POST', 'api/notifications/targeted', payload,
     ),
 };
@@ -561,7 +573,13 @@ const membership = {
     request<{ count: number }>('GET', 'api/membership/member-count'),
 
   subscribe: (data: { billingPeriod: 'monthly' | 'yearly' }) =>
-    request<{ checkoutUrl: string | null; sessionId?: string; devMode?: boolean; alreadyActive?: boolean; membership?: MembershipSummary }>(
+    request<{
+      checkoutUrl: string | null;
+      sessionId?: string;
+      devMode?: boolean;
+      alreadyActive?: boolean;
+      membership?: MembershipSummary;
+    }>(
       'POST', 'api/membership/subscribe', data
     ),
 
@@ -697,9 +715,8 @@ const activities = {
   promote: (id: string, isPromoted = true) =>
     request<ActivityData>('POST', `api/activities/${id}/promote`, { isPromoted }),
 };
-const businesses  = {
+const businesses = {
   ...directoryNamespace<Profile>('api/businesses'),
-  /** List businesses, optionally filtering by location or sponsored-only */
   list: (params?: { city?: string; country?: string; sponsored?: boolean }) => {
     const qs = new URLSearchParams();
     if (params?.city) qs.set('city', params.city);
@@ -711,7 +728,15 @@ const businesses  = {
 };
 
 const council = {
-  list: (params?: { q?: string; state?: string; verificationStatus?: 'verified' | 'unverified'; sortBy?: 'name' | 'state' | 'verification'; sortDir?: 'asc' | 'desc'; page?: number; pageSize?: number }) => {
+  list: (params?: {
+    q?: string;
+    state?: string;
+    verificationStatus?: 'verified' | 'unverified';
+    sortBy?: 'name' | 'state' | 'verification';
+    sortDir?: 'asc' | 'desc';
+    page?: number;
+    pageSize?: number;
+  }) => {
     const qs = new URLSearchParams();
     if (params?.q) qs.set('q', params.q);
     if (params?.state) qs.set('state', params.state);
@@ -798,18 +823,16 @@ const council = {
 // Locations — Firestore-backed hierarchy
 // ---------------------------------------------------------------------------
 export interface AustralianState {
-  name: string;   // e.g. 'New South Wales'
-  code: string;   // e.g. 'NSW'
-  emoji: string;  // e.g. '🏙️'
+  name: string;
+  code: string;
+  emoji: string;
   cities: string[];
 }
 
 export interface LocationEntry {
   country: string;
   countryCode: string;
-  /** State/territory breakdown with city lists */
   states: AustralianState[];
-  /** Flat list of all cities across all states (backward compat) */
   cities: string[];
 }
 
@@ -819,32 +842,17 @@ export interface LocationsResponse {
 }
 
 const locations = {
-  /** Fetch all location data (states + cities). Cache-first on backend (30 min TTL). */
   list: () => request<LocationsResponse>('GET', 'api/locations'),
-
-  // ── Admin mutations ──────────────────────────────────────────────────────
-
-  /** Re-seed the AU location document with the default dataset. Admin only. */
   seed: (countryCode = 'AU') =>
     request<{ ok: boolean }>('POST', `api/locations/${countryCode}/seed`),
-
-  /** Add a new state/territory. Admin only. */
   addState: (countryCode: string, state: Omit<AustralianState, 'cities'> & { cities?: string[] }) =>
     request<{ ok: boolean; code: string }>('POST', `api/locations/${countryCode}/states`, state),
-
-  /** Update a state's name or emoji. Admin only. */
   updateState: (countryCode: string, stateCode: string, patch: Partial<Pick<AustralianState, 'name' | 'emoji'>>) =>
     request<{ ok: boolean }>('PATCH', `api/locations/${countryCode}/states/${stateCode}`, patch),
-
-  /** Remove a state entirely. Admin only. */
   removeState: (countryCode: string, stateCode: string) =>
     request<{ ok: boolean }>('DELETE', `api/locations/${countryCode}/states/${stateCode}`),
-
-  /** Add a city to a state. Admin only. */
   addCity: (countryCode: string, stateCode: string, city: string) =>
     request<{ ok: boolean; city: string }>('POST', `api/locations/${countryCode}/states/${stateCode}/cities`, { city }),
-
-  /** Remove a city from a state. Admin only. */
   removeCity: (countryCode: string, stateCode: string, city: string) =>
     request<{ ok: boolean }>('DELETE', `api/locations/${countryCode}/states/${stateCode}/cities/${encodeURIComponent(city)}`),
 };
@@ -854,7 +862,19 @@ const locations = {
 // ---------------------------------------------------------------------------
 const cpid = {
   lookup: (id: string) =>
-    request<{ cpid: string; name: string; username?: string; tier?: string; org?: string; avatarUrl?: string; city?: string; country?: string; bio?: string; targetId?: string; userId?: string }>('GET', `api/cpid/lookup/${encodeURIComponent(id)}`),
+    request<{
+      cpid: string;
+      name: string;
+      username?: string;
+      tier?: string;
+      org?: string;
+      avatarUrl?: string;
+      city?: string;
+      country?: string;
+      bio?: string;
+      targetId?: string;
+      userId?: string;
+    }>('GET', `api/cpid/lookup/${encodeURIComponent(id)}`),
 };
 
 // ---------------------------------------------------------------------------

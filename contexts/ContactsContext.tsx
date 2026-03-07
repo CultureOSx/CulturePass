@@ -23,7 +23,8 @@ interface ContactsContextValue {
   removeContact: (cpid: string) => void;
   isContactSaved: (cpid: string) => boolean;
   getContact: (cpid: string) => SavedContact | undefined;
-  updateContact: (cpid: string, updates: Partial<SavedContact>) => void;
+  // FIX: exclude savedAt from updatable fields — callers cannot corrupt the timestamp
+  updateContact: (cpid: string, updates: Partial<Omit<SavedContact, 'savedAt'>>) => void;
   clearContacts: () => void;
 }
 
@@ -34,18 +35,26 @@ const ContactsContext = createContext<ContactsContextValue | null>(null);
 export function ContactsProvider({ children }: { children: ReactNode }) {
   const [contacts, setContacts] = useState<SavedContact[]>([]);
 
+  // FIX: on parse failure, remove the corrupt key so the next launch
+  // starts clean instead of hitting the same error repeatedly.
   useEffect(() => {
     AsyncStorage.getItem(CONTACTS_KEY).then(stored => {
-      if (stored) {
-        try {
-          setContacts(JSON.parse(stored));
-        } catch {}
+      if (!stored) return;
+      try {
+        setContacts(JSON.parse(stored));
+      } catch {
+        console.warn('[contacts] corrupt storage — clearing key');
+        AsyncStorage.removeItem(CONTACTS_KEY);
       }
     });
   }, []);
 
+  // FIX: persist now catches and logs storage errors so silent desyncs
+  // between in-memory state and AsyncStorage are surfaced.
   const persist = useCallback((updated: SavedContact[]) => {
-    AsyncStorage.setItem(CONTACTS_KEY, JSON.stringify(updated));
+    AsyncStorage.setItem(CONTACTS_KEY, JSON.stringify(updated)).catch(err => {
+      console.error('[contacts] failed to persist contacts:', err);
+    });
   }, []);
 
   const addContact = useCallback((contact: Omit<SavedContact, 'savedAt'>) => {
@@ -77,7 +86,9 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
 
   const getContact = useCallback((cpid: string) => contacts.find(c => c.cpid === cpid), [contacts]);
 
-  const updateContact = useCallback((cpid: string, updates: Partial<SavedContact>) => {
+  // FIX: type is now Partial<Omit<SavedContact, 'savedAt'>> — savedAt is
+  // stripped at the type level so callers cannot accidentally overwrite it.
+  const updateContact = useCallback((cpid: string, updates: Partial<Omit<SavedContact, 'savedAt'>>) => {
     setContacts(prev => {
       const updated = prev.map(c => c.cpid === cpid ? { ...c, ...updates } : c);
       persist(updated);
@@ -87,7 +98,9 @@ export function ContactsProvider({ children }: { children: ReactNode }) {
 
   const clearContacts = useCallback(() => {
     setContacts([]);
-    AsyncStorage.removeItem(CONTACTS_KEY);
+    AsyncStorage.removeItem(CONTACTS_KEY).catch(err => {
+      console.error('[contacts] failed to clear contacts:', err);
+    });
   }, []);
 
   const value = useMemo(() => ({

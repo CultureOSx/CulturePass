@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '@/lib/api';
 
@@ -64,6 +64,11 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<OnboardingState>(defaultState);
   const [isLoading, setIsLoading] = useState(true);
 
+  // FIX: keep a ref that always reflects the latest state so async callbacks
+  // (completeOnboarding, updateLocation) never read a stale closure value.
+  const stateRef = useRef(state);
+  useEffect(() => { stateRef.current = state; }, [state]);
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -81,7 +86,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     loadData();
   }, []);
 
-  const persistUpdate = async (patch: Partial<OnboardingState>) => {
+  // FIX: persistUpdate is now a stable useCallback so it can be listed as a
+  // dep in useMemo without causing infinite re-renders, and the eslint-disable
+  // suppression can be removed.
+  const persistUpdate = useCallback((patch: Partial<OnboardingState>) => {
     setState((prev) => {
       const newState = { ...prev, ...patch };
       AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newState)).catch((err) => {
@@ -92,49 +100,54 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       });
       return newState;
     });
-  };
+  }, []);
 
+  const completeOnboarding = useCallback(async (userId?: string) => {
+    persistUpdate({ isComplete: true });
+    if (userId) {
+      // FIX: read from stateRef so we always get the latest values, not
+      // whatever was captured when useMemo last ran.
+      const { city, country, interests, languages, ethnicityText } = stateRef.current;
+      try {
+        await api.users.update(userId, { city, country, interests, languages, ethnicityText });
+      } catch {
+        // Network failure — local state is set; DataSync will reconcile on next login
+      }
+    }
+  }, [persistUpdate]);
+
+  const resetOnboarding = useCallback(async () => {
+    setState(defaultState);
+    await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
+  }, []);
+
+  const updateLocation = useCallback(async (country: string, city: string, userId?: string) => {
+    persistUpdate({ country, city });
+    if (userId) {
+      try {
+        await api.users.update(userId, { city, country });
+      } catch {
+        // Network failure — local state is set
+      }
+    }
+  }, [persistUpdate]);
+
+  // FIX: all callbacks are now stable useCallbacks — eslint-disable suppression
+  // removed and deps are complete.
   const value = useMemo(() => ({
     state,
     isLoading,
-    setCountry:        (country: string) => persistUpdate({ country }),
-    setCity:           (city: string) => persistUpdate({ city }),
-    setCommunities:    (communities: string[]) => persistUpdate({ communities }),
-    setEthnicityText:  (ethnicityText: string) => persistUpdate({ ethnicityText }),
-    setLanguages:      (languages: string[]) => persistUpdate({ languages }),
-    setInterests:      (interests: string[]) => persistUpdate({ interests }),
+    setCountry:          (country: string) => persistUpdate({ country }),
+    setCity:             (city: string) => persistUpdate({ city }),
+    setCommunities:      (communities: string[]) => persistUpdate({ communities }),
+    setEthnicityText:    (ethnicityText: string) => persistUpdate({ ethnicityText }),
+    setLanguages:        (languages: string[]) => persistUpdate({ languages }),
+    setInterests:        (interests: string[]) => persistUpdate({ interests }),
     setSubscriptionTier: (subscriptionTier: OnboardingState['subscriptionTier']) => persistUpdate({ subscriptionTier }),
-    completeOnboarding: async (userId?: string) => {
-      await persistUpdate({ isComplete: true });
-      if (userId) {
-        try {
-          await api.users.update(userId, {
-            city: state.city,
-            country: state.country,
-            interests: state.interests,
-            languages: state.languages,
-            ethnicityText: state.ethnicityText,
-          });
-        } catch {
-          // Network failure — local state is set; DataSync will reconcile on next login
-        }
-      }
-    },
-    resetOnboarding: async () => {
-      setState(defaultState);
-      await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
-    },
-    updateLocation: async (country: string, city: string, userId?: string) => {
-      await persistUpdate({ country, city });
-      if (userId) {
-        try {
-          await api.users.update(userId, { city, country });
-        } catch {
-          // Network failure — local state is set
-        }
-      }
-    },
-  }), [state, isLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+    completeOnboarding,
+    resetOnboarding,
+    updateLocation,
+  }), [state, isLoading, persistUpdate, completeOnboarding, resetOnboarding, updateLocation]);
 
   return (
     <OnboardingContext.Provider value={value}>

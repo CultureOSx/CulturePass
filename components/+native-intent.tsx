@@ -22,7 +22,7 @@ export function redirectSystemPath({
 
   for (const [from, to] of remap) {
     if (cleanPath.startsWith(from)) {
-      return cleanPath.replace(from, to) + querySuffix;
+      return to + cleanPath.slice(from.length) + querySuffix; // ✅ moved here
     }
   }
 

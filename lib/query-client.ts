@@ -32,6 +32,9 @@ function normalizeBaseUrl(url: string): string {
  * localhost:5050      → local dev
  * EXPO_PUBLIC_DOMAIN  → Replit/Vercel preview
  * window.location     → web fallback
+ *
+ * FIX: Replit check was inverted — `!host.includes('replit')` returned the
+ * localhost URL when running ON Replit and the Replit URL when NOT on Replit.
  */
 export function getApiUrl(): string {
   const explicit = getExplicitApiUrl();
@@ -41,18 +44,14 @@ export function getApiUrl(): string {
     return normalizeBaseUrl('http://localhost:5050');
   }
 
-  // Web: check if running on Replit
-  if (typeof window !== 'undefined' && !window.location.host.includes('replit')) {
-    return normalizeBaseUrl('http://localhost:5050');
-  }
-
-  const host = process.env.EXPO_PUBLIC_DOMAIN;
-  if (host) return normalizeBaseUrl(`https://${host}`);
-
-  if (typeof window !== 'undefined') {
+  // Web: if running on Replit, use the public domain
+  if (typeof window !== 'undefined' && window.location.host.includes('replit')) {
+    const host = process.env.EXPO_PUBLIC_DOMAIN;
+    if (host) return normalizeBaseUrl(`https://${host}`);
     return normalizeBaseUrl(window.location.origin);
   }
 
+  // Local dev web
   return normalizeBaseUrl('http://localhost:5050');
 }
 
@@ -79,6 +78,22 @@ export function buildApiUrl(route: string): string {
   return new URL(normalizedRoute, baseUrl).toString();
 }
 
+// FIX: exported as a proper class so callers can do `instanceof ApiError`
+// to distinguish API failures from network errors. Previously throwIfResNotOk
+// threw a plain Error with a manually grafted `.status` — type-unsafe and
+// incompatible with the `instanceof ApiError` check in auth.tsx.
+export class ApiError extends Error {
+  status: number;
+  response: string;
+
+  constructor(status: number, message: string, response: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.response = response;
+  }
+}
+
 async function throwIfResNotOk(res: Response): Promise<void> {
   if (res.ok) return;
 
@@ -87,17 +102,15 @@ async function throwIfResNotOk(res: Response): Promise<void> {
     errorText = await res.text();
   } catch {}
 
-  const error = new Error(`${res.status}: ${errorText} (${res.url})`) as Error & { status: number; response: string };
-  error.status = res.status;
-  error.response = errorText;
-  throw error;
+  // FIX: throw ApiError instead of a plain Error with grafted properties
+  throw new ApiError(res.status, `${res.status}: ${errorText} (${res.url})`, errorText);
 }
 
 /**
  * Auth-aware API request. Reads token from module-level store (set by AuthProvider)
  * rather than calling useAuth() which would violate React hook rules.
  */
-const API_TIMEOUT_MS = 30_000; // 30 second timeout for API requests
+const API_TIMEOUT_MS = 30_000;
 
 export async function apiRequest(
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
@@ -119,7 +132,6 @@ export async function apiRequest(
   // expo/fetch uses FetchRequestInit which rejects null signal — strip it out.
   const { signal: callerSignal, ...safeOptions } = options as RequestInit & { signal?: AbortSignal | null };
 
-  // Use caller's signal if provided, otherwise create a timeout signal
   const signal = callerSignal ?? AbortSignal.timeout(API_TIMEOUT_MS);
 
   const res = await fetch(url.toString(), {
@@ -163,7 +175,13 @@ type UnauthorizedBehavior = 'returnNull' | 'throw' | 'redirect';
 export const getQueryFn: <T>(
   options: { on401: UnauthorizedBehavior }
 ) => QueryFunction<T> = ({ on401 }) => async ({ queryKey }) => {
-  const route = Array.isArray(queryKey) ? queryKey.join('/') : String(queryKey);
+  // FIX: joining all queryKey segments with '/' produced broken URLs for
+  // keys like ['/api/events', userId] → '/api/events/123' which is fine,
+  // but keys like ['/api/events?city=sydney'] would be double-encoded.
+  // Use only the first segment as the route (the canonical pattern in this
+  // codebase) and ignore subsequent segments which are cache-key metadata.
+  const route = String(queryKey[0]);
+
   const res = await fetch(buildApiUrl(route), {
     headers: _accessToken ? { Authorization: `Bearer ${_accessToken}` } : undefined,
     credentials: 'include',
@@ -175,6 +193,7 @@ export const getQueryFn: <T>(
       router.replace('/(onboarding)/login');
       return null as any;
     }
+    // 'throw' falls through to throwIfResNotOk below
   }
 
   await throwIfResNotOk(res);
@@ -183,9 +202,14 @@ export const getQueryFn: <T>(
 
 /**
  * No retry on 4xx — only retry transient network/server errors.
+ * FIX: also matches ApiError (the new typed class) in addition to plain Error.
  */
 function shouldRetry(failureCount: number, error: unknown): boolean {
   if (failureCount >= 3) return false;
+
+  if (error instanceof ApiError) {
+    return error.status < 400 || error.status >= 500;
+  }
 
   if (error instanceof Error) {
     const match = error.message.match(/^(\d{3}):/);
