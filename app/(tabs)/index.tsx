@@ -175,7 +175,7 @@ export default function HomeScreen() {
       queryKey: ['/api/events'],
       queryFn: () => api.events.list({ pageSize: 100 }),
     });
-    const allEvents: EventData[] = eventsResponse?.events ?? [];
+    const allEvents = useMemo<EventData[]>(() => eventsResponse?.events ?? [], [eventsResponse]);
     const activeAlerts = (councilData?.alerts ?? []).filter((alert: { status: string }) => alert.status === 'active');
     const isCouncilVerified = council?.verificationStatus === 'verified';
     const lgaCode = council?.lgaCode;
@@ -1102,7 +1102,7 @@ export default function HomeScreen() {
 const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
   topBar: {
     flexDirection: 'row',
@@ -1110,7 +1110,7 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
     overflow: 'hidden',
   },
   topBarBorder: {
@@ -1119,7 +1119,7 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
     left: 0,
     right: 0,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.borderLight,
+    backgroundColor: colors.borderLight,
   },
   brandBlock: {
     flexDirection: 'row',
@@ -1129,13 +1129,13 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
   brandName: {
     fontSize: 16,
     fontFamily: 'Poppins_700Bold',
-    color: Colors.text,
+    color: colors.text,
     lineHeight: 18,
   },
   brandUrl: {
     fontSize: 10,
     fontFamily: 'Poppins_400Regular',
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     lineHeight: 13,
   },
   locationPickerRow: {
@@ -1147,15 +1147,15 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
     marginHorizontal: 20,
     padding: 12,
     borderRadius: 12,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.borderLight,
+    borderColor: colors.borderLight,
     gap: 10,
   },
   guestAuthHint: {
     fontSize: 13,
     fontFamily: 'Poppins_500Medium',
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   guestAuthButtons: {
     flexDirection: 'row',
@@ -1171,21 +1171,21 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
   },
   guestSignupBtn: {
     backgroundColor: 'transparent',
-    borderColor: Colors.border,
+    borderColor: colors.border,
   },
   guestSigninBtn: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   guestAuthBtnText: {
     fontSize: 14,
     fontFamily: 'Poppins_600SemiBold',
   },
   guestSignupText: {
-    color: Colors.text,
+    color: colors.text,
   },
   guestSigninText: {
-    color: Colors.textInverse,
+    color: colors.textInverse,
   },
   topBarRight: {
     flexDirection: 'row',
@@ -1197,11 +1197,11 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderRadius: 20,
     position: 'relative',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.borderLight,
+    borderColor: colors.borderLight,
   },
   notifDot: {
     position: 'absolute',
@@ -1210,9 +1210,9 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.error,
+    backgroundColor: colors.error,
     borderWidth: 1.5,
-    borderColor: Colors.surfaceSecondary,
+    borderColor: colors.surfaceSecondary,
   },
   heroSection: {
     paddingHorizontal: 20,
@@ -1222,7 +1222,7 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
   heroSubtitle: {
     fontSize: 14,
     fontFamily: 'Poppins_600SemiBold',
-    color: Colors.tint,
+    color: colors.accent,
     marginBottom: 4,
     letterSpacing: 0.2,
   },
@@ -1318,7 +1318,7 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 24,
     overflow: 'hidden',
-    ...Colors.shadows.large,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8, elevation: 3,
   },
   bannerDecoration1: {
     position: 'absolute',
@@ -1366,7 +1366,7 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
     marginTop: 2,
   },
   plusBannerCta: {
-    backgroundColor: Colors.gold,
+    backgroundColor: CultureTokens.gold,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 14,
@@ -1384,7 +1384,7 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 24,
     overflow: 'hidden',
-    ...Colors.shadows.large,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8, elevation: 3,
   },
   perksBannerIconWrap: {
     width: 48,
@@ -1398,11 +1398,11 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderRadius: 24,
     paddingHorizontal: 20,
     paddingVertical: 22,
-    ...Colors.shadows.medium,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3,
   },
   exploreCtaIcon: {
     width: 48,
@@ -1415,12 +1415,12 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
   exploreCtaTitle: {
     fontSize: 16,
     fontFamily: 'Poppins_700Bold',
-    color: Colors.text,
+    color: colors.text,
   },
   exploreCtaSub: {
     fontSize: 13,
     fontFamily: 'Poppins_400Regular',
-    color: Colors.textTertiary,
+    color: colors.textTertiary,
     marginTop: 2,
   },
   webScrollContent: {
@@ -1514,7 +1514,7 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.error,
+    backgroundColor: colors.error,
     overflow: 'hidden',
   },
   webAvatarText: {
@@ -1559,9 +1559,9 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
+    borderColor: colors.borderLight,
     overflow: 'hidden',
   },
   webCategoryChipActive: {
@@ -1570,10 +1570,10 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
   webCategoryChipText: {
     fontSize: 13,
     fontFamily: 'Poppins_500Medium',
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   webCategoryChipTextActive: {
-    color: Colors.text,
+    color: colors.text,
     fontFamily: 'Poppins_600SemiBold',
   },
   webCivicCard: {
@@ -1622,8 +1622,8 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.borderLight,
-    backgroundColor: Colors.surface,
+    borderColor: colors.borderLight,
+    backgroundColor: colors.surface,
   },
   civicCardHeader: {
     flexDirection: 'row',
@@ -1633,12 +1633,12 @@ const getStyles = (colors: ReturnType<typeof useColors>) => StyleSheet.create({
   civicCardTitle: {
     fontSize: 13,
     fontFamily: 'Poppins_600SemiBold',
-    color: Colors.text,
+    color: colors.text,
   },
   civicCardSub: {
     fontSize: 12,
     fontFamily: 'Poppins_400Regular',
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     marginTop: 4,
   },
   activityTile: {

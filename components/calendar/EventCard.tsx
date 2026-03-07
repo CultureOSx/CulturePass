@@ -9,12 +9,8 @@ export default function EventCard({ event }: { event: EventData }) {
         <Text style={styles.title}>{event.title}</Text>
         <Text style={styles.meta}>{event.date} · {event.time} · {event.venue}</Text>
         <View style={styles.iconsRow}>
-          {event.liked && <Text>❤️</Text>}
-          {event.rsvp && <Text>📌</Text>}
-          {event.ticket && <Text>🎟</Text>}
           {event.councilId && <Text>🏛</Text>}
           {event.isFeatured && <Text>⭐</Text>}
-          {event.isTrending && <Text>🔥</Text>}
         </View>
       </View>
     </View>

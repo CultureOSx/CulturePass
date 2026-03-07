@@ -34,7 +34,8 @@ import { useOnboarding } from '@/contexts/OnboardingContext';
 import { calculateDistance, getPostcodesByPlace } from '@/shared/location/australian-postcodes';
 import * as Location from 'expo-location';
 
-import type { EventData as SampleEvent } from '@/shared/schema';
+import type { EventData } from '@/shared/schema/event';
+import type { ViewStyle, TextStyle } from 'react-native';
 
 function formatDate(dateStr: string): string {
   const [year, month, day] = dateStr.split("-").map(Number);
@@ -159,9 +160,6 @@ export default function EventDetailScreen() {
     </ErrorBoundary>
   );
 }
-
-import type { EventData } from '@/shared/schema/event';
-import type { ViewStyle, TextStyle } from 'react-native';
 
 interface EventDetailProps {
   event: EventData;

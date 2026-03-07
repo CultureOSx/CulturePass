@@ -14,9 +14,7 @@ import type { EventData } from '@/shared/schema';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useLayout } from '@/hooks/useLayout';
 import { useAuth } from '@/lib/auth';
-import { useOnboarding } from '@/contexts/OnboardingContext';
 
-interface TicketRecord    { eventId: string }
 type EventDataExtended    = EventData & { councilId?: string };
 
 const DAYS   = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -54,13 +52,11 @@ export default function CalendarScreen() {
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear,  setCurrentYear]  = useState(today.getFullYear());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const { state } = useOnboarding();
   const { data: councilData } = useCouncil();
-  const waste = councilData?.waste ?? null;
   const council = councilData?.council;
-  const councilEvents = councilData?.events ?? [];
+  const councilEvents = useMemo(() => councilData?.events ?? [], [councilData]);
 
-  const { user, isAuthenticated, userId } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   // Events are always fetched — guests can browse the calendar.
   // city/country params are optional; they narrow results when available.
   const { data: allEventsRaw = [], isLoading } = useQuery<EventData[]>({
@@ -71,14 +67,6 @@ export default function CalendarScreen() {
     },
   });
 
-  // Tickets — used to power the "Tickets" tab filter
-  const { data: ticketsRaw = [] } = useQuery<{ eventId: string }[]>({
-    queryKey: ['/api/tickets', userId],
-    queryFn: () => api.tickets.forUser(userId!).then((t) => t.map((ticket) => ({ eventId: ticket.eventId }))),
-    enabled: !!userId,
-  });
-
-  const tickets: TicketRecord[] = ticketsRaw;
 
   // Merge council events into allEvents (deduplicate by id)
   const allEvents = useMemo(() => {

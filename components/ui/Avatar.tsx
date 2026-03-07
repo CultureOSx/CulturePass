@@ -64,7 +64,7 @@ export function Avatar({
     .join('')
     .toUpperCase() || '?';
 
-  const fontSize = AvatarTokens.fontSize[size] ?? 14;
+  const fontSize = Math.round(dim * 0.35);
 
   const badgeSize = Math.max(12, Math.round(dim * 0.28));
   const badgeOffset = Math.round(badgeSize * -0.1);

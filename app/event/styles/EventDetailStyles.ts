@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { shadows } from '@/constants/theme';
 
 export function getStyles(colors: Record<string, string>) {
   return StyleSheet.create({

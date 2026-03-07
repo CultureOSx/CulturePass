@@ -217,7 +217,7 @@ function OrganizerDashboardContent() {
     enabled: !!userId,
   });
 
-  const events: EventData[] = eventsData?.events ?? [];
+  const events = useMemo<EventData[]>(() => eventsData?.events ?? [], [eventsData]);
 
   // Compute stats locally from event data
   const stats: OrganizerStats = {

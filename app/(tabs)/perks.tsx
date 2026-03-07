@@ -355,16 +355,6 @@ export default function PerksTabScreen() {
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function HeroStat({ label, value }: { label: string; value: string }) {
-  const colors = useColors();
-  return (
-    <View style={s.heroStat}>
-      <Text style={[s.heroStatNum, { color: colors.textInverse }]}>{value}</Text>
-      <Text style={s.heroStatLabel}>{label}</Text>
-    </View>
-  );
-}
-
 function PerkCard({
   perk,
   colors,
@@ -391,9 +381,6 @@ function PerkCard({
     : 0;
   const needsUpgrade = !redeemable && !!perk.isMembershipRequired;
   const exhausted    = !redeemable && !perk.isMembershipRequired;
-
-  // FIX: Resolve border color from colors hook, not a direct Colors import
-  const cardBorderColor = colors.borderLight ?? 'rgba(0,0,0,0.08)';
 
   return (
     <Pressable

@@ -24,8 +24,8 @@ import {
 } from "@/contexts/OnboardingContext";
 import { SavedProvider } from "@/contexts/SavedContext";
 import { ContactsProvider } from "@/contexts/ContactsContext";
-import { Colors } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { WebTopBar } from "@/components/web/WebTopBar";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 import {
@@ -230,7 +230,7 @@ function WebShell({ children }: { children: React.ReactNode }) {
       {/* Top bar wrapper for web, uses surface for contrast, shadow, and border */}
       {Platform.OS === 'web' ? (
         <View style={{ width: '100%' }}>
-          {require('@/components/web/WebTopBar').WebTopBar()}
+          <WebTopBar />
         </View>
       ) : (
         <View style={{

@@ -289,7 +289,7 @@ export const shadows = {
   small: {
     boxShadow: '0px 1px 3px rgba(0,0,0,0.04)',
     elevation: 1,
-  } satisfies ShadowStyle,
+  },
 
   medium: {
     shadowColor: "#000",
@@ -302,7 +302,7 @@ export const shadows = {
   large: {
     boxShadow: '0px 2px 8px rgba(0,0,0,0.07)',
     elevation: 3,
-  } satisfies ShadowStyle,
+  },
 
   heavy: {
     shadowColor: "#000",

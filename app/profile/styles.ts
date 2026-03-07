@@ -1,6 +1,5 @@
 import { StyleSheet } from 'react-native';
 import { Colors, CultureTokens, Spacing } from '@/constants/theme';
-import { CP } from './constants';
 
 export const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
@@ -60,7 +59,7 @@ export const styles = StyleSheet.create({
   avatarGradientRing: {
     width: 104, height: 104, borderRadius: 52,
     padding: Spacing.xs, marginBottom: Spacing.lg,
-    shadowColor: Colors.teal,
+    shadowColor: CultureTokens.teal,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.5, shadowRadius: 18,
     elevation: 12,

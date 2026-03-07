@@ -4,11 +4,9 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { useColors } from "@/hooks/useColors";
 import { CultureTokens } from "@/constants/theme";
 
 export function WebTopBar() {
-  const colors = useColors();
   // Tab route mapping
   const tabRoutes = {
     Discover: '/(tabs)',

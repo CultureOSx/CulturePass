@@ -70,18 +70,18 @@ export function WebSidebar() {
   const { isOrganizer, isAdmin, role } = useRole();
   const [collapsed, setCollapsed] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
-  const navItems = [
+  const navItems = React.useMemo(() => [
     ...MAIN_NAV,
     ...EXPLORE_NAV,
     ...(isOrganizer ? ORGANIZER_NAV : []),
     ...(isAdmin ? ADMIN_NAV : []),
     ...BOTTOM_NAV,
-  ];
+  ], [isOrganizer, isAdmin]);
 
   // Keyboard navigation handler
   React.useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (!document.activeElement || !document.activeElement.closest('.web-sidebar')) return;
+      if (!document.activeElement) return;
       if (e.key === 'ArrowDown') {
         setFocusedIndex((idx) => Math.min(navItems.length - 1, idx + 1));
         e.preventDefault();
@@ -128,7 +128,7 @@ export function WebSidebar() {
   const navigate = (route: string) => {
     try {
       router.push(route as Parameters<typeof router.push>[0]);
-    } catch (err) {
+    } catch {
       if (typeof window !== 'undefined') {
         window.alert('Navigation failed. This page may not exist or is not available on web.');
       }
@@ -156,7 +156,7 @@ export function WebSidebar() {
 
   if (collapsed) {
     return (
-      <View className="web-sidebar" style={[styles.sidebarCollapsed, sidebarAnimStyle, { backgroundColor: bg, borderRightColor: border }]}> 
+      <View style={[styles.sidebarCollapsed, sidebarAnimStyle, { backgroundColor: bg, borderRightColor: border }]}> 
         {/* Logo icon */}
         <View style={styles.collapsedLogo}>
           <View style={styles.logoIcon}>
@@ -203,7 +203,7 @@ export function WebSidebar() {
   }
 
   return (
-    <View className="web-sidebar" style={[styles.sidebar, sidebarAnimStyle, { backgroundColor: bg, borderRightColor: border }]}> 
+    <View style={[styles.sidebar, sidebarAnimStyle, { backgroundColor: bg, borderRightColor: border }]}> 
       {/* Logo */}
       <View style={styles.logo}>
         <View style={styles.logoIcon}>
@@ -358,14 +358,13 @@ function SidebarItem({ item, active, isDark, onPress }: {
   // Tooltip for collapsed mode
   const tooltip = typeof window !== 'undefined' && window.innerWidth <= 60 ? item.label : undefined;
 
-  // Memoize for performance
-  const MemoSidebarItem = React.memo(() => (
+  return (
     <Pressable
-      style={({ hovered, focused }) => [
+      style={(state: any) => [
         itemStyles.item,
-        active && [itemStyles.itemActive, { backgroundColor: colors.primarySoft }],
-        hovered && { backgroundColor: 'rgba(44,42,114,0.08)', transform: [{ scale: 1.04 }] },
-        focused && { outlineWidth: 2, outlineColor: colors.primary, outlineStyle: 'solid' },
+        active && [itemStyles.itemActive, { backgroundColor: colors.primaryGlow }],
+        state.hovered && { backgroundColor: 'rgba(44,42,114,0.08)', transform: [{ scale: 1.04 }] },
+        state.focused && { outlineWidth: 2, outlineColor: colors.primary, outlineStyle: 'solid' },
       ]}
       onPress={onPress}
       accessibilityRole="menuitem"
@@ -408,8 +407,7 @@ function SidebarItem({ item, active, isDark, onPress }: {
         </View>
       )}
     </Pressable>
-  ));
-  return <MemoSidebarItem />;
+  );
 }
 
 // ---------------------------------------------------------------------------

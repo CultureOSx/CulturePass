@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Platform, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, usePathname } from 'expo-router';
+import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { gradients } from '@/constants/theme';
 
@@ -10,11 +10,9 @@ import { gradients } from '@/constants/theme';
 // Guest view (intentionally dark)
 // ---------------------------------------------------------------------------
 export function GuestProfileView({ topInset }: { topInset: number }) {
-  const pathname = usePathname();
   const colors = useColors();
   const { width } = useWindowDimensions();
   const isDesktop = Platform.OS === 'web' && width >= 1024;
-  const ctaTextColor = colors.background;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

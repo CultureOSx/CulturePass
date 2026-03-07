@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet, ScrollView, Platform } from 'react-native';
+import { Text, Pressable, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useState } from 'react';
 import { useColors } from '@/hooks/useColors';
 import * as Haptics from 'expo-haptics';

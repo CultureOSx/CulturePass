@@ -44,26 +44,11 @@ type ElevationLevel = NativeShadow | WebShadow | Record<string, never>;
 // ---------------------------------------------------------------------------
 const nativeElevation: Record<0 | 1 | 2 | 3 | 4 | 5, NativeShadow | Record<string, never>> = {
   0: {},
-  1: {
-    boxShadow: '0px 1px 3px rgba(0,0,0,0.04)',
-    elevation: 1,
-  },
-  2: {
-    boxShadow: '0px 2px 8px rgba(0,0,0,0.07)',
-    elevation: 3,
-  },
-  3: {
-    boxShadow: '0px 4px 14px rgba(0,0,0,0.10)',
-    elevation: 5,
-  },
-  4: {
-    boxShadow: '0px 8px 24px rgba(0,0,0,0.14)',
-    elevation: 8,
-  },
-  5: {
-    boxShadow: '0px 16px 40px rgba(0,0,0,0.18)',
-    elevation: 12,
-  },
+  1: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 3, elevation: 1 },
+  2: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8, elevation: 3 },
+  3: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 14, elevation: 5 },
+  4: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.14, shadowRadius: 24, elevation: 8 },
+  5: { shadowColor: '#000', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.18, shadowRadius: 40, elevation: 12 },
 };
 
 // ---------------------------------------------------------------------------
