@@ -28,7 +28,8 @@
       "environment": "production",
       "env": {
         "GRADLE_OPTS": "-Xmx4096m -XX:MaxMetaspaceSize=1024m",
-        "ORG_GRADLE_PROJECT_reactNativeArchitectures": "armeabi-v7a,arm64-v8a"
+        "ORG_GRADLE_PROJECT_reactNativeArchitectures": "armeabi-v7a,arm64-v8a",
+        "npm_config_optional": "true"
       }
     }
   },
