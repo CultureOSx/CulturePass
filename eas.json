@@ -22,12 +22,9 @@
     "production": {
       "autoIncrement": true,
       "ios": {
-        "simulator": false,
-        "image": "latest"
+        "simulator": false
       },
-      "android": {
-        "image": "latest"
-      },
+      "android": {},
       "environment": "production",
       "env": {
         "GRADLE_OPTS": "-Xmx4096m -XX:MaxMetaspaceSize=1024m",
