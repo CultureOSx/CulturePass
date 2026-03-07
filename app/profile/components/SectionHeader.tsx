@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { View, Text } from 'react-native';
-import { styles } from '../_styles';
+import { styles } from '../styles';
 
 export const SectionHeader = memo(({ title }: { title: string }) => (
   <View style={styles.sectionHeader}>

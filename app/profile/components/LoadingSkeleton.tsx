@@ -1,7 +1,7 @@
 import { View, Text, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { styles } from '../_styles';
-import { CP } from '../_constants';
+import { styles } from '../styles';
+import { CP } from '../constants';
 
 export function LoadingSkeleton({ topInset }: { topInset: number }) {
   return (

@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { View } from 'react-native';
-import { CP } from '../_constants';
+import { CP } from '../constants';
 
 export const BrandDots = memo(({ size = 22, opacity = 0.22 }: { size?: number; opacity?: number }) => (
   <View style={{ flexDirection: 'row', alignItems: 'center', gap: size * 0.4 }} pointerEvents="none">

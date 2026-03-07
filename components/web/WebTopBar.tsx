@@ -157,7 +157,7 @@ export function WebTopBar() {
           <Pressable
             style={styles.signUpBtn}
             accessibilityLabel="Sign Up"
-            onPress={() => navigate("/(onboarding)/signup")}
+            onPress={() => navigate("/signup")}
           >
             <Text style={styles.signUpText}>Sign Up</Text>
           </Pressable>

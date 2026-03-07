@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet, FlexStyle } from 'react-native';
 import { usePathname, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,7 +20,6 @@ interface NavItem {
   iconActive: keyof typeof Ionicons.glyphMap;
   route: string;
   badge?: number;
-  /** Exact match or prefix match for highlighting */
   matchPrefix?: boolean;
 }
 
@@ -53,16 +52,9 @@ const ADMIN_NAV: NavItem[] = [
   { label: 'Notify',       icon: 'megaphone-outline', iconActive: 'megaphone', route: '/admin/notifications', matchPrefix: true },
 ];
 
-const BOTTOM_NAV: NavItem[] = [
-  { label: 'Settings', icon: 'settings-outline',    iconActive: 'settings',    route: '/settings' },
-  { label: 'Help',     icon: 'help-circle-outline', iconActive: 'help-circle', route: '/help' },
-];
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/** Safely derive initials without crashing on empty segments (e.g. double-space) */
 function getInitials(displayName: string): string {
   const initials = displayName
     .trim()
@@ -86,14 +78,11 @@ export function WebSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
 
-  // FIX: build a single flat list once so both the keyboard handler and
-  // the collapsed icon list are always in sync with the rendered sections.
-  const allNavItems = React.useMemo<NavItem[]>(() => [
+  const allNavItems = useMemo<NavItem[]>(() => [
     ...MAIN_NAV,
     ...EXPLORE_NAV,
     ...(isOrganizer ? ORGANIZER_NAV : []),
     ...(isAdmin ? ADMIN_NAV : []),
-    ...BOTTOM_NAV,
   ], [isOrganizer, isAdmin]);
 
   const { data: notifCount = 0 } = useQuery<number>({
@@ -107,8 +96,6 @@ export function WebSidebar() {
     refetchInterval: 60_000,
   });
 
-  // FIX: apply badge to whichever section contains the Profile item,
-  // rather than re-mapping only MAIN_NAV.
   const withBadge = useCallback((items: NavItem[]): NavItem[] =>
     items.map((item) =>
       item.label === 'Profile' && notifCount > 0
@@ -116,21 +103,17 @@ export function WebSidebar() {
         : item
     ), [notifCount]);
 
-  // FIX: stable navigate function — wrapped in useCallback so the keyboard
-  // effect doesn't close over a stale reference.
   const navigate = useCallback((route: string) => {
     try {
-      router.push(route as Parameters<typeof router.push>[0]);
+      router.push(route as any);
     } catch {
       if (typeof window !== 'undefined') {
-        window.alert('Navigation failed. This page may not exist or is not available on web.');
+        window.alert('Navigation failed.');
       }
     }
   }, []);
 
-  // FIX: include `navigate` and `allNavItems` in deps so the handler is
-  // never stale.
-  React.useEffect(() => {
+  useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (!document.activeElement) return;
       if (e.key === 'ArrowDown') {
@@ -148,19 +131,10 @@ export function WebSidebar() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [allNavItems, focusedIndex, navigate]);
 
-  // FIX: use flex: 1 / alignSelf: 'stretch' instead of height: '100%' cast.
-  // The parent container must be a flex column for this to fill correctly.
-  const sidebarWidth = collapsed ? 56 : 240;
-
   const isActive = useCallback((item: NavItem): boolean => {
-    // FIX: normalise Expo Router tab paths before comparing
-    const normalise = (p: string) =>
-      p.replace('/(tabs)', '').replace(/^$/, '/') || '/';
-
+    const normalise = (p: string) => p.replace('/(tabs)', '').replace(/^$/, '/') || '/';
     const normRoute = normalise(item.route);
-
     if (item.route === '/(tabs)') {
-      // Discover is only active at the root — not when a deeper tab is open
       return pathname === '/' || pathname === '' || pathname === '/index';
     }
     if (item.matchPrefix) {
@@ -169,11 +143,11 @@ export function WebSidebar() {
     return pathname === normRoute || pathname.startsWith(normRoute + '/');
   }, [pathname]);
 
-  const displayName =
-    user?.displayName ?? user?.username ?? user?.id?.slice(0, 8) ?? 'You';
+  const sidebarWidth = collapsed ? 64 : 240;
+  const displayName = user?.displayName ?? user?.username ?? user?.id?.slice(0, 8) ?? 'You';
   const initials = getInitials(displayName);
 
-  const roleLabel = (() => {
+  const roleLabel = useMemo(() => {
     switch (role) {
       case 'platformAdmin': return 'Platform Admin';
       case 'admin':         return 'Admin';
@@ -181,250 +155,99 @@ export function WebSidebar() {
       case 'moderator':     return 'Moderator';
       default:              return null;
     }
-  })();
+  }, [role]);
 
-  const bg     = colors.surface;
-  const border = colors.border;
-
-  const handleNotifications = () => {
-    if (isAuthenticated) {
-      router.push('/notifications');
-    } else {
-      router.push('/(onboarding)/login?redirectTo=%2Fnotifications');
-    }
-  };
-  const handleMap    = () => router.push('/map');
-  const handleSignUp = () => router.push('/(onboarding)/signup');
-
-  // ── Collapsed sidebar ─────────────────────────────────────────────────────
-  if (collapsed) {
-    return (
-      <View
-        style={[
-          styles.sidebarCollapsed,
-          { width: sidebarWidth, backgroundColor: bg, borderRightColor: border },
-        ]}
-      >
-        {/* Logo icon */}
-        <View style={styles.collapsedLogo}>
-          <View style={styles.logoIcon}>
-            <LinearGradient
-              colors={['#2C2A72', '#FF8C42']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
-            <Ionicons name="globe-outline" size={16} color="#fff" />
+  return (
+    <View style={[
+      collapsed ? styles.sidebarCollapsed : styles.sidebar, 
+      { width: sidebarWidth, backgroundColor: colors.surface, borderRightColor: colors.border }
+    ]}>
+      <View style={collapsed ? styles.logoCollapsed : styles.logoExpanded}>
+        <View style={styles.logoIcon}>
+          <LinearGradient colors={['#2C2A72', '#FF8C42']} style={StyleSheet.absoluteFill} />
+          <Ionicons name="globe-outline" size={collapsed ? 16 : 18} color="#fff" />
+        </View>
+        {!collapsed && (
+          <View style={{ flex: 1 }}>
+            <Text style={styles.logoText}>CulturePass</Text>
+            <Text style={styles.logoUrl}>culturepass.app</Text>
           </View>
-        </View>
-
-        <View style={[styles.divider, { backgroundColor: border }]} />
-
-        {/* FIX: render ALL nav sections in collapsed mode, not just MAIN_NAV */}
-        <View style={styles.navGroup}>
-          {withBadge(allNavItems).map((item) => (
-            <Pressable
-              key={item.route}
-              style={[
-                styles.collapsedItem,
-                isActive(item) && { backgroundColor: 'rgba(44,42,114,0.08)' },
-              ]}
-              onPress={() => navigate(item.route)}
-              accessibilityLabel={item.label}
-              // Show label as tooltip in collapsed mode
-              // @ts-ignore – title is valid on web
-              title={item.label}
-            >
-              <Ionicons
-                name={isActive(item) ? item.iconActive : item.icon}
-                size={20}
-                color={isActive(item) ? colors.primary : 'rgba(0,22,40,0.56)'}
-              />
-              {(item.badge ?? 0) > 0 && (
-                <View style={styles.badgeDot}>
-                  <Text style={styles.badgeDotText}>{item.badge}</Text>
-                </View>
-              )}
-            </Pressable>
-          ))}
-        </View>
-
-        {/* Expand button */}
-        <View style={{ flex: 1 }} />
-        <Pressable style={styles.collapsedItem} onPress={() => setCollapsed(false)}>
-          <Ionicons name="chevron-forward-outline" size={20} color="rgba(0,22,40,0.45)" />
+        )}
+        <Pressable onPress={() => setCollapsed(!collapsed)}>
+          <Ionicons name={collapsed ? "chevron-forward-outline" : "chevron-back-outline"} size={18} color="rgba(0,22,40,0.4)" />
         </Pressable>
+      </View>
 
-        {/* Avatar */}
-        {isAuthenticated && (
-          <View style={[styles.collapsedAvatar, { borderTopColor: border }]}>
+      <View style={[styles.divider, { backgroundColor: colors.border }]} />
+      
+      <View style={{ flex: 1 }}>
+        <SectionGroup>
+          {withBadge(MAIN_NAV).map((item) => (
+            <SidebarItem key={item.route} item={item} active={isActive(item)} collapsed={collapsed} onPress={() => navigate(item.route)} />
+          ))}
+        </SectionGroup>
+
+        {!collapsed && <SectionLabel label="Explore" />}
+        <SectionGroup>
+          {EXPLORE_NAV.map((item) => (
+            <SidebarItem key={item.route} item={item} active={isActive(item)} collapsed={collapsed} onPress={() => navigate(item.route)} />
+          ))}
+        </SectionGroup>
+
+        {isOrganizer && (
+          <>
+            {!collapsed && <SectionLabel label="Organizer" />}
+            <SectionGroup>
+              {ORGANIZER_NAV.map((item) => (
+                <SidebarItem key={item.route} item={item} active={isActive(item)} collapsed={collapsed} onPress={() => navigate(item.route)} />
+              ))}
+            </SectionGroup>
+          </>
+        )}
+
+        {isAdmin && (
+          <>
+            {!collapsed && <SectionLabel label="Admin" />}
+            <SectionGroup>
+              {ADMIN_NAV.map((item) => (
+                <SidebarItem key={item.route} item={item} active={isActive(item)} collapsed={collapsed} onPress={() => navigate(item.route)} />
+              ))}
+            </SectionGroup>
+          </>
+        )}
+      </View>
+
+      <View style={[styles.userSection, { borderTopColor: colors.border }]}>
+        {isAuthenticated ? (
+          <View style={styles.userInfoRow}>
             {user?.avatarUrl ? (
               <Image source={{ uri: user.avatarUrl }} style={styles.avatarImg} />
             ) : (
               <View style={styles.avatar}>
-                <LinearGradient
-                  colors={['#2C2A72', '#FF8C42']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={StyleSheet.absoluteFill}
-                />
+                <LinearGradient colors={['#2C2A72', '#FF8C42']} style={StyleSheet.absoluteFill} />
                 <Text style={styles.avatarText}>{initials}</Text>
               </View>
             )}
-          </View>
-        )}
-      </View>
-    );
-  }
-
-  // ── Expanded sidebar ──────────────────────────────────────────────────────
-  return (
-    <View
-      style={[
-        styles.sidebar,
-        { width: sidebarWidth, backgroundColor: bg, borderRightColor: border },
-      ]}
-    >
-      {/* Logo */}
-      <View style={styles.logo}>
-        <View style={styles.logoIcon}>
-          <LinearGradient
-            colors={['#2C2A72', '#FF8C42']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-          <Ionicons name="globe-outline" size={18} color="#fff" />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.logoText, { color: '#000' }]}>CulturePass</Text>
-          <Text style={[styles.logoUrl, { color: 'rgba(0,22,40,0.35)' }]}>culturepass.app</Text>
-        </View>
-        <Pressable onPress={() => setCollapsed(true)} hitSlop={8}>
-          <Ionicons name="chevron-back-outline" size={18} color="rgba(0,22,40,0.4)" />
-        </Pressable>
-      </View>
-
-      <View style={[styles.divider, { backgroundColor: border }]} />
-
-      {/* Main nav */}
-      <SectionGroup>
-        {withBadge(MAIN_NAV).map((item) => (
-          <SidebarItem key={item.route} item={item} active={isActive(item)} onPress={() => navigate(item.route)} />
-        ))}
-      </SectionGroup>
-
-      {/* Explore nav */}
-      <SectionLabel label="Explore" />
-      <SectionGroup>
-        {EXPLORE_NAV.map((item) => (
-          <SidebarItem key={item.route} item={item} active={isActive(item)} onPress={() => navigate(item.route)} />
-        ))}
-      </SectionGroup>
-
-      {/* Organizer nav */}
-      {isOrganizer && (
-        <>
-          <SectionLabel label="Organizer" />
-          <SectionGroup>
-            {ORGANIZER_NAV.map((item) => (
-              <SidebarItem key={item.route} item={item} active={isActive(item)} onPress={() => navigate(item.route)} />
-            ))}
-          </SectionGroup>
-        </>
-      )}
-
-      {/* Admin nav */}
-      {isAdmin && (
-        <>
-          <SectionLabel label="Admin" />
-          <SectionGroup>
-            {ADMIN_NAV.map((item) => (
-              <SidebarItem key={item.route} item={item} active={isActive(item)} onPress={() => navigate(item.route)} />
-            ))}
-          </SectionGroup>
-        </>
-      )}
-
-      {/* Spacer */}
-      <View style={{ flex: 1 }} />
-
-      <View style={[styles.divider, { backgroundColor: border }]} />
-
-      {/* Bottom action buttons */}
-      <SectionGroup>
-        <Pressable
-          aria-label="Notifications"
-          tabIndex={0}
-          style={[styles.actionBtn, { backgroundColor: '#FFE1CC' }]}
-          onPress={handleNotifications}
-        >
-          <Ionicons name="notifications-outline" size={20} color="#FF8C42" />
-        </Pressable>
-        <Pressable
-          aria-label="Map"
-          tabIndex={0}
-          style={[styles.actionBtn, { backgroundColor: '#D7F5F1' }]}
-          onPress={handleMap}
-        >
-          <Ionicons name="map-outline" size={20} color="#2EC4B6" />
-        </Pressable>
-        {!isAuthenticated && (
-          <Pressable
-            aria-label="Sign Up"
-            tabIndex={0}
-            style={[styles.actionBtn, { backgroundColor: '#FF5E5B' }]}
-            onPress={handleSignUp}
-          >
-            <Text style={[styles.signInText, { color: '#fff' }]}>Sign Up</Text>
-          </Pressable>
-        )}
-      </SectionGroup>
-
-      {/* User section */}
-      {isAuthenticated ? (
-        <View style={[styles.userSection, { borderTopColor: border }]}>
-          {user?.avatarUrl ? (
-            <Image source={{ uri: user.avatarUrl }} style={styles.avatarImg} />
-          ) : (
-            <View style={styles.avatar}>
-              <LinearGradient
-                colors={['#2C2A72', '#FF8C42']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={StyleSheet.absoluteFill}
-              />
-              <Text style={styles.avatarText}>{initials}</Text>
-            </View>
-          )}
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={[styles.userName, { color: '#001628' }]} numberOfLines={1}>
-              {displayName}
-            </Text>
-            {roleLabel && (
-              <View style={styles.roleBadge}>
-                <Text style={styles.roleBadgeText}>{roleLabel}</Text>
+            {!collapsed && (
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={styles.userName} numberOfLines={1}>{displayName}</Text>
+                {roleLabel && <Text style={styles.roleLabelText}>{roleLabel}</Text>}
               </View>
             )}
+            {!collapsed && (
+              <Pressable onPress={() => logout()} hitSlop={8}>
+                <Ionicons name="log-out-outline" size={20} color="rgba(0,22,40,0.45)" />
+              </Pressable>
+            )}
           </View>
-          <Pressable onPress={() => logout()} hitSlop={8} accessibilityLabel="Sign out">
-            <Ionicons name="log-out-outline" size={20} color="rgba(0,22,40,0.45)" />
-          </Pressable>
-        </View>
-      ) : (
-        <View style={[styles.userSection, { borderTopColor: border }]}>
+        ) : (
           <Pressable style={styles.signInBtn} onPress={() => router.push('/(onboarding)/login')}>
-            <LinearGradient
-              colors={['#2C2A72', '#FF8C42']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={StyleSheet.absoluteFill}
-            />
+            <LinearGradient colors={['#2C2A72', '#FF8C42']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFill} />
             <Ionicons name="person-outline" size={16} color="#fff" />
-            <Text style={styles.signInText}>Sign In</Text>
+            {!collapsed && <Text style={styles.signInText}>Sign In</Text>}
           </Pressable>
-        </View>
-      )}
+        )}
+      </View>
     </View>
   );
 }
@@ -439,252 +262,83 @@ function SectionGroup({ children }: { children: React.ReactNode }) {
 function SectionLabel({ label }: { label: string }) {
   return (
     <View style={styles.sectionLabel}>
-      <Text style={[styles.sectionLabelText, { color: 'rgba(0,22,40,0.35)' }]}>{label}</Text>
+      <Text style={styles.sectionLabelText}>{label}</Text>
     </View>
   );
 }
 
-function SidebarItem({
-  item,
-  active,
-  onPress,
-}: {
-  item: NavItem;
-  active: boolean;
-  onPress: () => void;
-}) {
-  const isCommunity = item.label === 'Community';
+function SidebarItem({ item, active, collapsed, onPress }: { item: NavItem; active: boolean; collapsed: boolean; onPress: () => void; }) {
   const colors = useColors();
   const iconColor = active ? colors.primary : colors.textSecondary;
 
   return (
     <Pressable
-      style={(state: any) => [
+      style={({ hovered }: any) => [
         itemStyles.item,
-        active && [itemStyles.itemActive, { backgroundColor: colors.primaryGlow }],
-        state.hovered && { backgroundColor: 'rgba(44,42,114,0.08)', transform: [{ scale: 1.04 }] },
-        state.focused && { outlineWidth: 2, outlineColor: colors.primary, outlineStyle: 'solid' },
+        active && { backgroundColor: colors.primaryGlow },
+        hovered && { backgroundColor: 'rgba(44,42,114,0.08)' },
+        collapsed && { justifyContent: 'center', paddingHorizontal: 0 }
       ]}
       onPress={onPress}
-      accessibilityRole="menuitem"
-      accessibilityState={{ selected: active }}
-      aria-current={active ? 'page' : undefined}
-      tabIndex={0}
+      // @ts-ignore - title is valid for tooltips on web
+      title={collapsed ? item.label : undefined}
     >
-      {active && (
-        <LinearGradient
-          colors={['#2C2A72', '#FF8C42']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={itemStyles.activeBar}
-        />
+      <Ionicons name={active ? item.iconActive : item.icon} size={20} color={iconColor} />
+      {!collapsed && (
+        <Text style={[itemStyles.label, { color: active ? colors.primary : colors.text }, active && itemStyles.labelActive]} numberOfLines={1}>
+          {item.label}
+        </Text>
       )}
-      <View style={{ width: 20, height: 20, alignItems: 'center', justifyContent: 'center' }}>
-        {isCommunity ? (
-          <>
-            <Ionicons
-              name={active ? 'people-circle' : 'people-circle-outline'}
-              size={20}
-              color={iconColor}
-            />
-            <Ionicons
-              name={active ? 'heart' : 'heart-outline'}
-              size={8}
-              color={active ? colors.primary : '#111'}
-              style={{ position: 'absolute' }}
-            />
-          </>
-        ) : (
-          <Ionicons name={active ? item.iconActive : item.icon} size={20} color={iconColor} />
-        )}
-      </View>
-      <Text
-        style={[
-          itemStyles.label,
-          { color: active ? colors.primary : colors.text },
-          active && itemStyles.labelActive,
-        ]}
-        numberOfLines={1}
-      >
-        {item.label}
-      </Text>
       {(item.badge ?? 0) > 0 && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{item.badge! > 99 ? '99+' : item.badge}</Text>
+        <View style={collapsed ? styles.badgeDot : styles.badge}>
+          <Text style={styles.badgeText}>{!collapsed && item.badge! > 99 ? '99+' : item.badge}</Text>
         </View>
       )}
     </Pressable>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Styles
-// FIX: replaced `height: '100%' as unknown as number` with flex + alignSelf
-// FIX: replaced `marginLeft: 'auto' as unknown as number` with a wrapper View
-// ---------------------------------------------------------------------------
 const styles = StyleSheet.create({
-  sidebar: {
-    // FIX: flex:1 + alignSelf fills the parent column container reliably on web
-    flex: 1,
-    alignSelf: 'stretch' as FlexStyle['alignSelf'],
-    borderRightWidth: 1,
-    paddingTop: 20,
-    paddingBottom: 0,
-    flexShrink: 0,
+  sidebar: { 
+    // FIXED: Removed flex: 1 to prevent splitting the screen with siblings
+    alignSelf: 'stretch' as FlexStyle['alignSelf'], 
+    borderRightWidth: 1, 
+    paddingTop: 20, 
+    flexShrink: 0 
   },
-  sidebarCollapsed: {
-    flex: 1,
-    alignSelf: 'stretch' as FlexStyle['alignSelf'],
-    borderRightWidth: 1,
-    paddingTop: 16,
-    paddingBottom: 0,
-    flexShrink: 0,
-    alignItems: 'center',
+  sidebarCollapsed: { 
+    // FIXED: Removed flex: 1 to prevent splitting the screen with siblings
+    alignSelf: 'stretch' as FlexStyle['alignSelf'], 
+    borderRightWidth: 1, 
+    paddingTop: 16, 
+    flexShrink: 0, 
+    alignItems: 'center' 
   },
-  collapsedLogo: { paddingBottom: 16 },
-  collapsedItem: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    marginVertical: 2,
-  },
-  collapsedAvatar: {
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    width: '100%' as unknown as number,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  logoIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  logoText:  { fontSize: 15, fontFamily: 'Poppins_700Bold', lineHeight: 20 },
-  logoUrl:   { fontSize: 10, fontFamily: 'Poppins_400Regular', marginTop: 1 },
-  divider:   { height: 1, marginHorizontal: 14, marginVertical: 6 },
-  navGroup:  { paddingHorizontal: 8, paddingVertical: 2, gap: 1 },
+  logoExpanded: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingBottom: 16 },
+  logoCollapsed: { alignItems: 'center', paddingBottom: 16, gap: 8 },
+  logoIcon: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  logoText: { fontSize: 15, fontFamily: 'Poppins_700Bold', color: '#000' },
+  logoUrl: { fontSize: 10, color: 'rgba(0,22,40,0.35)' },
+  divider: { height: 1, marginHorizontal: 14, marginVertical: 6 },
+  navGroup: { paddingHorizontal: 8, paddingVertical: 2, gap: 1 },
   sectionLabel: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 2 },
-  sectionLabelText: {
-    fontSize: 10,
-    fontFamily: 'Poppins_600SemiBold',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-  },
-  userSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-  },
-  avatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    flexShrink: 0,
-  },
-  avatarImg: { width: 34, height: 34, borderRadius: 17, flexShrink: 0 },
+  sectionLabelText: { fontSize: 10, fontFamily: 'Poppins_600SemiBold', letterSpacing: 1.2, textTransform: 'uppercase', color: 'rgba(0,22,40,0.35)' },
+  userSection: { paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: 1 },
+  userInfoRow: { flexDirection: 'row', alignItems: 'center' },
+  avatar: { width: 34, height: 34, borderRadius: 17, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  avatarImg: { width: 34, height: 34, borderRadius: 17 },
   avatarText: { fontSize: 14, fontFamily: 'Poppins_700Bold', color: '#fff' },
-  userName:   { fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
-  roleBadge: {
-    backgroundColor: 'rgba(44,42,114,0.15)',
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    alignSelf: 'flex-start',
-    marginTop: 2,
-  },
-  roleBadgeText: {
-    fontSize: 10,
-    fontFamily: 'Poppins_600SemiBold',
-    color: CultureTokens.indigo,
-  },
-  // FIX: badge uses a flex row-end wrapper instead of marginLeft: 'auto' cast
-  badge: {
-    backgroundColor: CultureTokens.coral,
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
-    paddingHorizontal: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    // marginLeft: 'auto' removed — badge sits inside a flex row so a
-    // flex:1 spacer on the label pushes it right naturally (label has flex:1)
-  },
-  badgeText:    { fontSize: 10, fontFamily: 'Poppins_700Bold', color: '#fff' },
-  badgeDot: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: CultureTokens.coral,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeDotText: { fontSize: 6, fontFamily: 'Poppins_700Bold', color: '#fff' },
-  // FIX: renamed from signInBtn to avoid collision with the sign-in CTA button
-  actionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    height: 38,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  signInBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    height: 38,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
+  userName: { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: '#001628' },
+  roleLabelText: { fontSize: 10, color: CultureTokens.indigo, fontFamily: 'Poppins_600SemiBold' },
+  signInBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 38, borderRadius: 10, overflow: 'hidden' },
   signInText: { fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
+  badge: { backgroundColor: CultureTokens.coral, borderRadius: 10, minWidth: 18, height: 18, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center' },
+  badgeText: { fontSize: 10, fontFamily: 'Poppins_700Bold', color: '#fff' },
+  badgeDot: { position: 'absolute', top: 2, right: 2, width: 8, height: 8, borderRadius: 4, backgroundColor: CultureTokens.coral },
 });
 
 const itemStyles = StyleSheet.create({
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    borderRadius: 10,
-    paddingVertical: 9,
-    paddingHorizontal: 10,
-    position: 'relative',
-  },
-  itemActive: { borderRadius: 10 },
-  activeBar: {
-    position: 'absolute',
-    left: 0,
-    top: 6,
-    bottom: 6,
-    width: 3,
-    borderRadius: 2,
-  },
-  label:       { fontSize: 13, fontFamily: 'Poppins_500Medium', flex: 1 },
+  item: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 10, paddingVertical: 9, paddingHorizontal: 10 },
+  label: { fontSize: 13, fontFamily: 'Poppins_500Medium', flex: 1 },
   labelActive: { fontFamily: 'Poppins_600SemiBold' },
 });

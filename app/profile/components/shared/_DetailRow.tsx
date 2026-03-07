@@ -18,15 +18,17 @@ export const DetailRow = memo(({
         <Ionicons name={icon} size={18} color={iconColor} />
       </View>
       <View style={styles.detailText}>
-        <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={[styles.detailValue, valueColor ? { color: valueColor } : undefined]}>{value}</Text>
+        {/* ...existing code... */}
       </View>
-      {showArrow && <Ionicons name="open-outline" size={16} color={CP.muted} />}
     </>
   );
-  if (onPress) {
-    return <Pressable style={styles.detailRow} onPress={onPress}>{content}</Pressable>;
-  }
-  return <View style={styles.detailRow}>{content}</View>;
+  return onPress ? (
+    <Pressable onPress={onPress} style={styles.detailRow}>
+      {content}
+      {showArrow && <Ionicons name="chevron-forward" size={16} color={CP.muted} style={{ marginLeft: 8 }} />}
+    </Pressable>
+  ) : (
+    <View style={styles.detailRow}>{content}</View>
+  );
 });
 DetailRow.displayName = 'DetailRow';
