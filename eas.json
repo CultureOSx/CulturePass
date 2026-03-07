@@ -22,7 +22,11 @@
     "production": {
       "autoIncrement": true,
       "ios": {
-        "simulator": false
+        "simulator": false,
+        "image": "latest"
+      },
+      "android": {
+        "image": "latest"
       },
       "environment": "production"
     }
