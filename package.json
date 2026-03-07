@@ -98,6 +98,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
+    "@react-native-community/cli": "latest",
     "@babel/core": "^7.25.2",
     "@expo/ngrok": "^4.1.0",
     "@faker-js/faker": "^10.3.0",

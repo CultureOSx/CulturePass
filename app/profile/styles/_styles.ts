@@ -1,10 +1,4 @@
-import { StyleSheet } from 'react-native';
-import { Colors, CultureTokens, Spacing } from '@/constants/theme';
-
 export const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  centered:  { flex: 1, justifyContent: 'center', alignItems: 'center' },
-
   errorText:      { fontSize: 16, fontFamily: 'Poppins_500Medium', color: Colors.textSecondary },
   backButton:     { marginTop: Spacing.md, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderRadius: 14, backgroundColor: CultureTokens.indigo },
   backButtonText: { fontSize: 15, fontFamily: 'Poppins_600SemiBold', color: Colors.textInverse },
@@ -17,4 +11,13 @@ export const styles = StyleSheet.create({
     borderWidth: 30, borderColor: CultureTokens.teal + '1A',
   },
   arcInner: {
-    position: 'absolute', top: -44, right: -44,
+    position: 'absolute',
+    top: -44,
+    right: -44,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 16,
+    borderColor: CultureTokens.saffron + '1A',
+  },
+});

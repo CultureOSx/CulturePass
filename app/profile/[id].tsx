@@ -160,7 +160,6 @@ export default function ProfileDetailScreen() {
 
         <ProfileContact
           profile={profile}
-          hasCoordinates={hasCoordinates}
           entityColor={entityColor}
         />
 

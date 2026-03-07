@@ -25,15 +25,15 @@ import {
   TIER_CONFIG,
   formatMemberDate,
   getInitials,
-} from './_constants';
-import { styles } from './_styles';
+} from './constants';
+import { styles } from './styles/_styles';
 
 import { BrandDots } from '../../components/profile/BrandDots';
 import { StatItem } from './components/_StatItem';
-import { SectionHeader } from './components/_SectionHeader';
+import { SectionHeader } from './components/shared/_SectionHeader';
 import { SocialCard } from './components/_SocialCard';
 import { DetailRow } from '../../components/profile/DetailRow';
-import { LoadingSkeleton } from './components/_LoadingSkeleton';
+import { LoadingSkeleton } from './components/shared/_LoadingSkeleton';
 
 export default function PublicProfileScreen() {
   const colors = useColors();
@@ -56,7 +56,7 @@ export default function PublicProfileScreen() {
   const tierConf = TIER_CONFIG[tier] ?? TIER_CONFIG.free;
 
   const socialLinks   = useMemo(() => (user?.socialLinks ?? {}) as Record<string, string | undefined>, [user?.socialLinks]);
-  const activeSocials = useMemo(() => SOCIAL_ICONS.filter(s => socialLinks[s.key]), [socialLinks]);
+  const activeSocials = useMemo(() => SOCIAL_ICONS.filter((s: { key: string }) => socialLinks[s.key]), [socialLinks]);
 
   const displayName  = user?.displayName ?? 'CulturePass User';
   const initials     = useMemo(() => getInitials(displayName), [displayName]);
