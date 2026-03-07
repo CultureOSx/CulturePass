@@ -7,19 +7,20 @@ import BrowsePage, { BrowseItem, CategoryFilter } from '@/components/BrowsePage'
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { api } from '@/lib/api';
 import type { EventData } from '@/shared/schema';
-import { Colors } from '@/constants/theme';
-import { useColors } from '@/hooks/useColors';
+import { CultureTokens } from '@/constants/theme';
 
+// Category chip colors use stable brand tokens — they do not change between
+// light and dark mode, which is intentional (brand colours are always vibrant).
 const eventCategories: CategoryFilter[] = [
-  { label: 'All', icon: 'calendar', color: Colors.text },
-  { label: 'Music', icon: 'musical-notes', color: Colors.error },
-  { label: 'Dance', icon: 'body', color: Colors.secondary },
-  { label: 'Food', icon: 'restaurant', color: Colors.warning },
-  { label: 'Art', icon: 'color-palette', color: Colors.primary },
-  { label: 'Wellness', icon: 'heart', color: Colors.error },
-  { label: 'Film', icon: 'film', color: Colors.info },
-  { label: 'Workshop', icon: 'construct', color: Colors.accent },
-  { label: 'Heritage', icon: 'library', color: Colors.gold },
+  { label: 'All',       icon: 'calendar',      color: CultureTokens.indigo  },
+  { label: 'Music',     icon: 'musical-notes', color: CultureTokens.coral   },
+  { label: 'Dance',     icon: 'body',          color: CultureTokens.saffron },
+  { label: 'Food',      icon: 'restaurant',    color: CultureTokens.gold    },
+  { label: 'Art',       icon: 'color-palette', color: CultureTokens.teal    },
+  { label: 'Wellness',  icon: 'heart',         color: CultureTokens.coral   },
+  { label: 'Film',      icon: 'film',          color: CultureTokens.gold    },
+  { label: 'Workshop',  icon: 'construct',     color: CultureTokens.saffron },
+  { label: 'Heritage',  icon: 'library',       color: CultureTokens.teal    },
 ];
 
 function formatDate(dateStr: string): string {
@@ -70,7 +71,7 @@ export default function ExploreScreen() {
     <ErrorBoundary>
       <BrowsePage
         title={cityParam ? `Events in ${cityParam}` : "Events"}
-        accentColor={Colors.primary}
+        accentColor={CultureTokens.indigo}
         accentIcon="calendar"
         categories={eventCategories}
         categoryKey="category"

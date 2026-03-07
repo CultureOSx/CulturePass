@@ -12,7 +12,6 @@ import { useSaved } from '@/contexts/SavedContext';
 import { useColors } from '@/hooks/useColors';
 import * as Haptics from 'expo-haptics';
 import { useQuery } from '@tanstack/react-query';
-import { queryClient } from '@/lib/query-client';
 import { useState, useMemo, useCallback } from 'react';
 import type { Profile } from '@/shared/schema';
 import { FilterChipRow } from '@/components/FilterChip';
@@ -219,11 +218,14 @@ export default function CommunitiesScreen() {
   }, [allProfiles]);
 
   const [refreshing, setRefreshing] = useState(false);
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    queryClient.invalidateQueries({ queryKey: ['/api/profiles'] });
-    setTimeout(() => setRefreshing(false), 1000);
-  }, []);
+    try {
+      await refetchProfiles();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchProfiles]);
 
   const handleSelectType = useCallback((id: string) => {
     Haptics.selectionAsync();

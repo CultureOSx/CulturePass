@@ -410,7 +410,6 @@ function SidebarItem({ item, active, isDark, onPress }: {
   ));
   return <MemoSidebarItem />;
 }
-}
 
 // ---------------------------------------------------------------------------
 // Styles

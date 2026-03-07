@@ -151,7 +151,7 @@ export default function PerksTabScreen() {
   };
 
   const handleSharePerk = async (perk: Perk) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
       await Share.share({
         title: `${perk.title} - CulturePass Perk`,
@@ -173,7 +173,7 @@ export default function PerksTabScreen() {
   }, [colors]);
 
   const handleSelectCategory = useCallback((id: string) => {
-    Haptics.selectionAsync();
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     setSelectedCategory(id);
   }, []);
 
@@ -237,7 +237,7 @@ export default function PerksTabScreen() {
           {!isPlusMember && (
             <Pressable
               style={[s.upgradeBanner, shellStyle, { backgroundColor: colors.surface, borderColor: colors.primary + '30' }]}
-              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/membership/upgrade' as never); }}
+              onPress={() => { if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/membership/upgrade' as never); }}
             >
               <View style={[s.upgradeBannerIcon, { backgroundColor: colors.primaryGlow }]}>
                 <Ionicons name="star" size={18} color={colors.primary} />
@@ -329,7 +329,7 @@ export default function PerksTabScreen() {
                   formattedValue={formatValue(perk)}
                   onShare={() => handleSharePerk(perk)}
                   onRedeem={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                     if (!canRedeem(perk) && perk.isMembershipRequired) {
                       router.push('/membership/upgrade' as never);
                     } else if (!userId) {

@@ -9,7 +9,6 @@ import {
   Share,
   RefreshControl,
   ActivityIndicator,
-  useWindowDimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,6 +26,7 @@ import { api, type RewardsSummary } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useRole } from '@/hooks/useRole';
 import { useColors } from '@/hooks/useColors';
+import { useLayout } from '@/hooks/useLayout';
 import type { User, Wallet, Membership, EventData } from '@/shared/schema';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GuestProfileView } from '@/components/profile/GuestProfileView';
@@ -58,8 +58,8 @@ function capitalize(s: string): string {
 export default function ProfileScreen() {
   const insets   = useSafeAreaInsets();
   const topInset = Platform.OS === 'web' ? 0 : insets.top;
-  const { width } = useWindowDimensions();
-  const isDesktopWeb = Platform.OS === 'web' && width >= 1024;
+  const { isDesktop } = useLayout();
+  const isDesktopWeb = Platform.OS === 'web' && isDesktop;
   const colors   = useColors();
   const { state, resetOnboarding } = useOnboarding();
   const { savedEvents, joinedCommunities } = useSaved();
@@ -72,7 +72,7 @@ export default function ProfileScreen() {
     setRefreshing(true);
     try {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['api/auth/me'] }),
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] }),
         queryClient.invalidateQueries({ queryKey: ['/api/users/me', 'profile-tab', userId] }),
         queryClient.invalidateQueries({ queryKey: ['/api/wallet', userId] }),
         queryClient.invalidateQueries({ queryKey: [`/api/membership/${userId}`] }),
@@ -207,7 +207,7 @@ export default function ProfileScreen() {
           try {
             await logout('/(tabs)');
           } catch (error) {
-            console.warn('[profile] sign out failed:', error);
+            if (__DEV__) console.warn('Sign out failed', error);
             Alert.alert('Sign out failed', 'Please try again.');
           }
         },
@@ -554,8 +554,8 @@ export default function ProfileScreen() {
               <MenuItem icon="gift-outline"     label="Perks & Benefits" color={colors.accent}  showDivider={false}                                                         onPress={() => router.push('/perks')}            colors={colors} />
             </View>
             {/* Membership expiry and recent activity */}
-            {membership && typeof (membership as any).expiresAt === 'string' && (
-                <Text style={{ color: colors.textSecondary, fontSize: 13 }}>Membership expires: {formatDate((membership as any).expiresAt)}</Text>
+            {membership?.validUntil && (
+                <Text style={{ color: colors.textSecondary, fontSize: 13 }}>Membership expires: {formatDate(membership.validUntil)}</Text>
             )}
             <View style={{ marginTop: 10 }}>
               <Text style={{ color: colors.text, fontWeight: '600', fontSize: 15, marginBottom: 4 }}>Recent Tickets & Wallet</Text>

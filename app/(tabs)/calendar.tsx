@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { StyleSheet, Text, View, ScrollView, Pressable, Platform, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Pressable, Platform, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -7,15 +7,14 @@ import Head from 'expo-router/head';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
-import { Colors, BorderTokens } from '@/constants/theme';
 import { useQuery } from '@tanstack/react-query';
-import { useOnboarding } from '@/contexts/OnboardingContext';
 import { api } from '@/lib/api';
 import { useCouncil } from '@/hooks/useCouncil';
 import type { EventData } from '@/shared/schema';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useLayout } from '@/hooks/useLayout';
-import { useAuth } from "@/lib/auth"
+import { useAuth } from '@/lib/auth';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 
 interface TicketRecord    { eventId: string }
 interface RsvpRecord      { eventId: string }
@@ -61,14 +60,13 @@ function nextDateForWeekday(weekday: number, from = new Date()): Date {
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
   const colors = useColors();
-  const { width } = useWindowDimensions();
-  const { isDesktop, isTablet } = useLayout();
+  const { width, isDesktop, isTablet, hPad } = useLayout();
   const isDesktopWeb = Platform.OS === 'web' && isDesktop;
   const webTopInset = Platform.OS === 'web' ? 0 : insets.top;
   const contentMaxWidth = Platform.OS === 'web'
     ? (isDesktopWeb ? 1280 : isTablet ? 1040 : width)
     : width;
-  const contentHorizontalPadding = Platform.OS === 'web' ? (isDesktopWeb ? 24 : 16) : 0;
+  const contentHorizontalPadding = Platform.OS === 'web' ? hPad : 0;
   const today = useMemo(() => new Date(), []);
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear,  setCurrentYear]  = useState(today.getFullYear());
@@ -80,40 +78,30 @@ export default function CalendarScreen() {
   const councilEvents = councilData?.events ?? [];
 
   const { user, isAuthenticated, userId } = useAuth();
+  // Events are always fetched — guests can browse the calendar.
+  // city/country params are optional; they narrow results when available.
   const { data: allEventsRaw = [], isLoading } = useQuery<EventData[]>({
     queryKey: ['/api/events', user?.country, user?.city],
     queryFn: async () => {
       const data = await api.events.list({ city: user?.city, country: user?.country, pageSize: 100 });
       return data.events ?? [];
     },
-    enabled: !!user,
   });
 
-  // Fetch user tickets
-  const { data: tickets = [] } = useQuery<TicketRecord[]>({
+  // Tickets — used to power the "Tickets" tab filter
+  const { data: ticketsRaw = [] } = useQuery<{ eventId: string }[]>({
     queryKey: ['/api/tickets', userId],
+    queryFn: () => api.tickets.forUser(userId!).then((t) => t.map((ticket) => ({ eventId: ticket.eventId }))),
     enabled: !!userId,
-  })
-  // Fetch user RSVPs
-  const { data: rsvps = [] } = useQuery<RsvpRecord[]>({
-    queryKey: ['/api/user_event_rsvp', userId],
-    enabled: !!userId,
-  })
-  // Fetch user likes
-  const { data: likes = [] } = useQuery<LikeRecord[]>({
-    queryKey: ['/api/user_event_likes', userId],
-    enabled: !!userId,
-  })
-  // Fetch council subs
-  const { data: councilSubs = [] } = useQuery<CouncilSubRecord[]>({
-    queryKey: ['/api/user_council_subscriptions', userId],
-    enabled: !!userId,
-  })
-  // Fetch interests
-  const { data: interests = [] } = useQuery<InterestRecord[]>({
-    queryKey: ['/api/user_interests', userId],
-    enabled: !!userId,
-  })
+  });
+
+  // RSVPs, likes, council subs, and interests are not yet available as dedicated
+  // API endpoints. Stub them as empty until backend routes are added.
+  const rsvps: RsvpRecord[] = [];
+  const likes: LikeRecord[] = [];
+  const councilSubs: CouncilSubRecord[] = [];
+  const interests: InterestRecord[] = [];
+  const tickets: TicketRecord[] = ticketsRaw;
 
   // Merge council events into allEvents (deduplicate by id)
   const allEvents = useMemo(() => {
@@ -226,21 +214,21 @@ export default function CalendarScreen() {
   }, [filteredEvents, currentMonth, currentYear]);
 
   const prevMonth = useCallback(() => {
-    Haptics.selectionAsync();
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear((y) => y - 1); }
     else setCurrentMonth((m) => m - 1);
     setSelectedDate(null);
   }, [currentMonth]);
 
   const nextMonth = useCallback(() => {
-    Haptics.selectionAsync();
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     if (currentMonth === 11) { setCurrentMonth(0); setCurrentYear((y) => y + 1); }
     else setCurrentMonth((m) => m + 1);
     setSelectedDate(null);
   }, [currentMonth]);
 
   const goToday = useCallback(() => {
-    Haptics.selectionAsync();
+    if (Platform.OS !== 'web') Haptics.selectionAsync();
     setCurrentMonth(today.getMonth());
     setCurrentYear(today.getFullYear());
     setSelectedDate(null);
@@ -251,10 +239,10 @@ export default function CalendarScreen() {
   if (isLoading) {
     return (
       <ErrorBoundary>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF' }}>
-          <View style={{ backgroundColor: '#FFFFFF', borderColor: BorderTokens.black, borderWidth: BorderTokens.widthBold, borderRadius: 20, padding: 32, shadowColor: colors.primary, shadowOpacity: 0.10, shadowRadius: 16, elevation: 4, alignItems: 'center' }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+          <View style={{ backgroundColor: colors.surface, borderRadius: 20, padding: 32, shadowColor: colors.primary, shadowOpacity: 0.10, shadowRadius: 16, elevation: 4, alignItems: 'center' }}>
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={{ color: colors.primary, fontFamily: 'Poppins_600SemiBold', fontSize: 16, marginTop: 18 }}>Loading Calendar tab...</Text>
+            <Text style={{ color: colors.primary, fontFamily: 'Poppins_600SemiBold', fontSize: 16, marginTop: 18 }}>Loading Calendar...</Text>
           </View>
         </View>
       </ErrorBoundary>
@@ -263,7 +251,7 @@ export default function CalendarScreen() {
 
   return (
     <ErrorBoundary>
-      <View style={[s.container, { paddingTop: webTopInset, backgroundColor: Platform.OS === 'web' ? '#FFFFFF' : colors.background }]}>
+      <View style={[s.container, { paddingTop: webTopInset, backgroundColor: colors.background }]}>
         <Head><title>Events Calendar — CulturePass</title></Head>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -312,13 +300,13 @@ export default function CalendarScreen() {
           <View style={isDesktopWeb ? s.desktopSplit : undefined}>
             <View style={isDesktopWeb ? s.desktopCalendarCol : undefined}>
               {/* Calendar card */}
-              <View style={[s.calCard, isDesktopWeb && s.calCardCompact, { backgroundColor: '#FFFFFF', borderColor: colors.borderLight, borderWidth: 1, borderRadius: 20, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 16, elevation: 4 }]}> 
+              <View style={[s.calCard, isDesktopWeb && s.calCardCompact, { backgroundColor: colors.surface, borderColor: colors.borderLight, borderWidth: 1, borderRadius: 20, shadowColor: colors.text, shadowOpacity: 0.08, shadowRadius: 16, elevation: 4 }]}>
                 <View style={s.monthNav}>
-                  <Pressable onPress={prevMonth} hitSlop={14} style={[s.navBtn, { backgroundColor: colors.backgroundSecondary }]} accessibilityRole="button" accessibilityLabel="Previous month">
+                  <Pressable onPress={prevMonth} hitSlop={14} style={[s.navBtn, { backgroundColor: colors.surface }]} accessibilityRole="button" accessibilityLabel="Previous month">
                     <Ionicons name="chevron-back" size={18} color={colors.textSecondary} />
                   </Pressable>
                   <Text style={[s.monthText, { color: colors.text }]}>{MONTHS[currentMonth]} {currentYear}</Text>
-                  <Pressable onPress={nextMonth} hitSlop={14} style={[s.navBtn, { backgroundColor: colors.backgroundSecondary }]} accessibilityRole="button" accessibilityLabel="Next month">
+                  <Pressable onPress={nextMonth} hitSlop={14} style={[s.navBtn, { backgroundColor: colors.surface }]} accessibilityRole="button" accessibilityLabel="Next month">
                     <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
                   </Pressable>
                 </View>
@@ -338,17 +326,17 @@ export default function CalendarScreen() {
                     const isSelected = selectedDate === dateKey;
                     const isToday    = day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
 
-                    let dayTextColor = '#222';
-                    if (isSelected) dayTextColor = '#FFF';
-                    else if (isToday) dayTextColor = '#007AFF';
+                    let dayTextColor = colors.text;
+                    if (isSelected) dayTextColor = colors.textInverse;
+                    else if (isToday) dayTextColor = colors.primary;
 
                     return (
                       <Pressable
                         key={dateKey}
-                        onPress={() => { Haptics.selectionAsync(); setSelectedDate(isSelected ? null : dateKey); }}
-                        style={[s.dayCell, { borderColor: colors.borderLight, borderWidth: 1, borderRadius: 12, backgroundColor: '#FFFFFF' },
-                          isSelected && { backgroundColor: '#007AFF', borderWidth: 2, borderColor: '#007AFF', shadowColor: '#007AFF', shadowOpacity: 0.12, shadowRadius: 8 },
-                          isToday && !isSelected && { backgroundColor: '#E3F0FF', borderWidth: 2, borderColor: '#007AFF' },
+                        onPress={() => { if (Platform.OS !== 'web') Haptics.selectionAsync(); setSelectedDate(isSelected ? null : dateKey); }}
+                        style={[s.dayCell, { borderColor: colors.borderLight, borderWidth: 1, borderRadius: 12, backgroundColor: colors.surface },
+                          isSelected && { backgroundColor: colors.primary, borderWidth: 2, borderColor: colors.primary, shadowColor: colors.primary, shadowOpacity: 0.12, shadowRadius: 8 },
+                          isToday && !isSelected && { backgroundColor: colors.primaryGlow, borderWidth: 2, borderColor: colors.primary },
                         ]}
                         accessibilityRole="button"
                         accessibilityLabel={`${day} ${MONTHS[currentMonth]} ${currentYear}${hasEvent ? `, ${count} event${count > 1 ? 's' : ''}` : ''}${isToday ? ', today' : ''}${isSelected ? ', selected' : ''}`}
@@ -362,7 +350,7 @@ export default function CalendarScreen() {
                             {Array.from({ length: Math.min(count, 3) }).map((_, di) => (
                               <View
                                 key={di}
-                                style={[s.dot, { backgroundColor: isSelected ? '#FFFFFF' : colors.accent, width: 7, height: 7, borderRadius: 3.5 }]}
+                                style={[s.dot, { backgroundColor: isSelected ? colors.textInverse : colors.accent, width: 7, height: 7, borderRadius: 3.5 }]}
                               />
                             ))}
                           </View>
@@ -405,7 +393,7 @@ export default function CalendarScreen() {
                   {upcomingEvents.length > 0 ? (
                     upcomingEvents.map((event) => <EventRow key={event.id} event={event} colors={colors} isAuthenticated={isAuthenticated} />)
                   ) : (
-                    <View style={[s.empty, { backgroundColor: '#FFFFFF', borderColor: BorderTokens.white, borderWidth: BorderTokens.widthBold }]}> 
+                    <View style={[s.empty, { backgroundColor: colors.surface }]}>
                       <Ionicons name="calendar-clear-outline" size={40} color={colors.textTertiary} />
                       <Text style={[s.emptyText, { color: colors.textSecondary }]}>No upcoming events yet.</Text>
                     </View>
@@ -479,7 +467,7 @@ function EventRow({ event, colors, isAuthenticated }: { event: EventDataExtended
   // If event is a council event, clicking navigates to My Council
   const isCouncilEvent = event.category === 'council' || event.category === 'Council' || event.category === 'civic' || event.councilId != null;
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (isCouncilEvent && isAuthenticated) {
       router.push('/(tabs)/council');
     } else {
@@ -489,7 +477,7 @@ function EventRow({ event, colors, isAuthenticated }: { event: EventDataExtended
   return (
     <Pressable
       onPress={handlePress}
-      style={({ pressed }) => [s.eventRow, { backgroundColor: '#FFFFFF', borderColor: BorderTokens.black, borderWidth: BorderTokens.widthBold, opacity: pressed ? 0.85 : 1, shadowColor: colors.primary, shadowOpacity: pressed ? 0.18 : 0.08, shadowRadius: pressed ? 12 : 8, elevation: 2 }]}
+      style={({ pressed }) => [s.eventRow, { backgroundColor: colors.surface, borderColor: colors.borderLight, opacity: pressed ? 0.85 : 1, shadowColor: colors.primary, shadowOpacity: pressed ? 0.18 : 0.08, shadowRadius: pressed ? 12 : 8, elevation: 2 }]}
       accessibilityRole="button"
       accessibilityLabel={`${event.title}, ${eventDateLabel}${event.venue ? `, ${event.venue}` : ''}`}
     >
@@ -509,8 +497,8 @@ function EventRow({ event, colors, isAuthenticated }: { event: EventDataExtended
         </View>
       </View>
 
-      <View style={[s.priceChip, { backgroundColor: (event.priceCents ?? 0) === 0 ? colors.success + '15' : colors.primaryGlow }]}> 
-        <Text style={[s.priceText, { color: (event.priceCents ?? 0) === 0 ? colors.success : colors.primary }]}> 
+      <View style={[s.priceChip, { backgroundColor: (event.priceCents ?? 0) === 0 ? colors.success + '15' : colors.primaryGlow }]}>
+        <Text style={[s.priceText, { color: (event.priceCents ?? 0) === 0 ? colors.success : colors.primary }]}>
           {formatPrice(event.priceCents ?? 0)}
         </Text>
       </View>
@@ -525,31 +513,31 @@ const s = StyleSheet.create({
   container: { flex: 1 },
   loadingText: { marginTop: 10, fontSize: 14, fontFamily: 'Poppins_500Medium' },
   headerRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4 },
-  headerTitle: { fontSize: 28, fontFamily: Platform.OS === 'ios' || Platform.OS === 'macos' ? 'San Francisco' : 'Helvetica Neue', fontWeight: '700', letterSpacing: -0.4, color: '#222', marginBottom: 2 },
-  headerSub: { fontSize: 13, fontFamily: Platform.OS === 'ios' || Platform.OS === 'macos' ? 'San Francisco' : 'Helvetica Neue', fontWeight: '400', marginTop: 1, color: '#A3A6AE' },
+  headerTitle: { fontSize: 28, fontFamily: 'Poppins_700Bold', letterSpacing: -0.4, marginBottom: 2 },
+  headerSub: { fontSize: 13, fontFamily: 'Poppins_400Regular', marginTop: 1 },
   todayBtn: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 50 },
   todayBtnText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13 },
 
   summaryRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 20, paddingVertical: 14, flexWrap: 'wrap' },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 50, borderWidth: 1, backgroundColor: '#F8F9FB', borderColor: '#E3E4E8' },
-  chipText: { fontFamily: Platform.OS === 'ios' || Platform.OS === 'macos' ? 'San Francisco' : 'Helvetica Neue', fontWeight: '500', fontSize: 13, color: '#222' },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 50, borderWidth: 1 },
+  chipText: { fontFamily: 'Poppins_500Medium', fontSize: 13 },
 
-  calCard: { marginHorizontal: 16, borderRadius: 20, padding: 18, backgroundColor: '#FFFFFF', borderColor: '#E3E4E8', borderWidth: 1, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 },
+  calCard: { marginHorizontal: 16, borderRadius: 20, padding: 18, borderWidth: 1, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 },
   calCardCompact: { marginHorizontal: 0, maxWidth: 760 },
   monthNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  navBtn: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F6FA' },
-  monthText: { fontFamily: Platform.OS === 'ios' || Platform.OS === 'macos' ? 'San Francisco' : 'Helvetica Neue', fontWeight: '600', fontSize: 17, color: '#222' },
+  navBtn: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  monthText: { fontFamily: 'Poppins_600SemiBold', fontSize: 17 },
 
   dayHeaders: { flexDirection: 'row', marginBottom: 6 },
-  dayHeaderText: { flex: 1, textAlign: 'center', fontFamily: Platform.OS === 'ios' || Platform.OS === 'macos' ? 'San Francisco' : 'Helvetica Neue', fontWeight: '600', fontSize: 12, color: '#A3A6AE' },
+  dayHeaderText: { flex: 1, textAlign: 'center', fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
 
   daysGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  dayCell: { width: '14.28%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 12, marginVertical: 2, gap: 2, backgroundColor: '#FFFFFF', borderColor: '#E3E4E8', borderWidth: 1 },
-  dayCellSelected: { transform: [{ scale: 1.08 }], backgroundColor: '#007AFF', borderWidth: 2, borderColor: '#007AFF' },
-  dayText: { fontFamily: Platform.OS === 'ios' || Platform.OS === 'macos' ? 'San Francisco' : 'Helvetica Neue', fontWeight: '500', fontSize: 14, color: '#222' },
-  dayTextSelected: { fontWeight: '600', color: '#FFFFFF' },
+  dayCell: { width: '14.28%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 12, marginVertical: 2, gap: 2, borderWidth: 1 },
+  dayCellSelected: { transform: [{ scale: 1.08 }] },
+  dayText: { fontFamily: 'Poppins_500Medium', fontSize: 14 },
+  dayTextSelected: { fontFamily: 'Poppins_700Bold' },
   dotRow: { flexDirection: 'row', gap: 2 },
-  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#007AFF' },
+  dot: { width: 4, height: 4, borderRadius: 2 },
 
   eventsSection: { paddingHorizontal: 16, paddingTop: 24 },
   eventsSectionSide: { paddingHorizontal: 0, paddingTop: 0 },
@@ -561,15 +549,15 @@ const s = StyleSheet.create({
   empty: { alignItems: 'center', justifyContent: 'center', paddingVertical: 48, gap: 10, borderRadius: 16 },
   emptyText: { fontFamily: 'Poppins_500Medium', fontSize: 15 },
 
-  eventRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, marginBottom: 10, padding: 12, gap: 12, backgroundColor: '#FFFFFF', borderColor: '#E3E4E8', borderWidth: 1, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 2, elevation: 1 },
+  eventRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, marginBottom: 10, padding: 12, gap: 12, borderWidth: 1, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 2, elevation: 1 },
   eventImg: { width: 60, height: 60, borderRadius: 12 },
   eventInfo: { flex: 1, gap: 3 },
-  eventTitle: { fontFamily: Platform.OS === 'ios' || Platform.OS === 'macos' ? 'San Francisco' : 'Helvetica Neue', fontWeight: '600', fontSize: 14 },
+  eventTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 14 },
   eventMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  eventTime: { fontFamily: Platform.OS === 'ios' || Platform.OS === 'macos' ? 'San Francisco' : 'Helvetica Neue', fontWeight: '500', fontSize: 12 },
-  eventVenue: { fontFamily: Platform.OS === 'ios' || Platform.OS === 'macos' ? 'San Francisco' : 'Helvetica Neue', fontWeight: '400', fontSize: 12, flexShrink: 1 },
-  priceChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: '#F5F6FA' },
-  priceText: { fontFamily: Platform.OS === 'ios' || Platform.OS === 'macos' ? 'San Francisco' : 'Helvetica Neue', fontWeight: '600', fontSize: 12, color: '#007AFF' },
+  eventTime: { fontFamily: 'Poppins_500Medium', fontSize: 12 },
+  eventVenue: { fontFamily: 'Poppins_400Regular', fontSize: 12, flexShrink: 1 },
+  priceChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
+  priceText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
   civicRow: { flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderRadius: 12, padding: 11, marginBottom: 8 },
   civicIcon: { width: 26, height: 26, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
 

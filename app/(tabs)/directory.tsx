@@ -16,10 +16,11 @@ import { Colors } from '@/constants/theme';
 import { useState, useMemo, useCallback } from 'react';
 import * as Haptics from 'expo-haptics';
 import { useQuery } from '@tanstack/react-query';
-import { queryClient } from '@/lib/query-client';
-import type { Profile } from '@shared/schema';
+import { api } from '@/lib/api';
+import type { Profile } from '@/shared/schema';
 import { FilterChipRow, FilterItem } from '@/components/FilterChip';
 import { useColors } from '@/hooks/useColors';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -202,6 +203,7 @@ export default function DirectoryScreen() {
 
   const { data: allProfiles, isLoading, error: profilesError, refetch: refetchProfiles } = useQuery<Profile[]>({
     queryKey: ['/api/profiles'],
+    queryFn: () => api.profiles.list(),
   });
 
   // Exclude community profiles — this screen is for directory listings only
@@ -242,11 +244,14 @@ export default function DirectoryScreen() {
   }, [nonCommunityProfiles]);
 
   const [refreshing, setRefreshing] = useState(false);
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    queryClient.invalidateQueries({ queryKey: ['/api/profiles'] });
-    setTimeout(() => setRefreshing(false), 1000);
-  }, []);
+    try {
+      await refetchProfiles();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchProfiles]);
 
   const handleFilterSelect = useCallback((id: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -265,6 +270,7 @@ export default function DirectoryScreen() {
 
   if (profilesError) {
     return (
+      <ErrorBoundary>
       <View style={[styles.container, { paddingTop: topInset, alignItems: 'center', justifyContent: 'center', gap: 12 }]}>
         <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
         <Text style={[styles.emptyTitle, { color: colors.text }]}>Could not load directory</Text>
@@ -278,6 +284,7 @@ export default function DirectoryScreen() {
           <Text style={[styles.cardActionText, { fontSize: 14 }]}>Try Again</Text>
         </Pressable>
       </View>
+      </ErrorBoundary>
     );
   }
 
