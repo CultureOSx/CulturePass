@@ -7,7 +7,6 @@ import {
   Text,
   Pressable,
   useWindowDimensions,
-  useColorScheme,
 } from 'react-native';
 import { Tabs, router, usePathname } from 'expo-router';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
@@ -193,8 +192,7 @@ interface CustomTabBarProps {
 }
 
 function CustomTabBar({ state, navigation, position = 'bottom' }: CustomTabBarProps & { position?: 'top' | 'bottom' }) {
-  const scheme = useColorScheme();
-  const isDark = Platform.OS === 'web' ? false : scheme === 'dark';
+  const isDark = false;
   const insets = useSafeAreaInsets();
   const isIOS = Platform.OS === 'ios';
   const isWeb = Platform.OS === 'web';

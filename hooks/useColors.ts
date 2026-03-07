@@ -1,9 +1,8 @@
 /**
- * useColors — dark/light-mode-aware color hook for CulturePassAU.
+ * useColors — light-mode color hook for CulturePassAU.
  *
- * Returns the correct color theme based on:
- * - Native: device system color scheme (dark by default in CulturePass UX)
- * - Web: user's system color scheme preference (respects system setting)
+ * Always returns the light theme — CulturePass uses a clean white/light
+ * design system across all platforms (iOS, Android, web).
  *
  * Usage:
  *   const colors = useColors();
@@ -13,24 +12,14 @@
  * For static use (e.g. in StyleSheet.create at module level where hooks
  * cannot be called), import Colors directly:
  *   import Colors from '@/constants/colors';
- *   // Colors.primary, Colors.background, etc. (maps to light theme by default)
- *
- * Note on web theming:
- *   The WebSidebar uses its own `useColorScheme()` for dark/light detection.
- *   The main content area can use `useColors()` which respects the system setting.
- *   Most web screens use a custom dark gradient background, so this hook's
- *   return value primarily affects text/border colors on web.
+ *   // Colors.primary, Colors.background, etc. (maps to light theme)
  */
 
-import { Platform, useColorScheme } from 'react-native';
 import type { ColorTheme } from '@/constants/colors';
-import { light, dark } from '@/constants/colors';
+import { light } from '@/constants/colors';
 
 export function useColors(): ColorTheme {
-  // Web: respect the user's system color scheme preference
-  // Native: same — useColorScheme returns the device setting
-  const scheme = useColorScheme();
-  return scheme === 'dark' ? dark : light;
+  return light;
 }
 
 // ---------------------------------------------------------------------------
@@ -41,22 +30,19 @@ export function useColors(): ColorTheme {
 //   const primary = useColor('primary');
 // ---------------------------------------------------------------------------
 export function useColor<K extends keyof ColorTheme>(key: K): ColorTheme[K] {
-  const colors = useColors();
-  return colors[key];
+  return light[key];
 }
 
 // ---------------------------------------------------------------------------
 // Utilities for inline platform-aware color decisions
 // ---------------------------------------------------------------------------
 
-/** Returns `darkValue` if the current scheme is dark, `lightValue` otherwise */
-export function useSchemeValue<T>(darkValue: T, lightValue: T): T {
-  const scheme = useColorScheme();
-  return scheme === 'dark' ? darkValue : lightValue;
+/** Always returns `lightValue` — CulturePass is light-mode only */
+export function useSchemeValue<T>(_darkValue: T, lightValue: T): T {
+  return lightValue;
 }
 
-/** Returns true when the current color scheme is dark */
+/** Always returns false — CulturePass is light-mode only */
 export function useIsDark(): boolean {
-  const scheme = useColorScheme();
-  return scheme === 'dark';
+  return false;
 }

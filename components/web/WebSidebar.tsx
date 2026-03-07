@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, useColorScheme } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { usePathname, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -64,8 +64,6 @@ const BOTTOM_NAV: NavItem[] = [
 export function WebSidebar() {
   const pathname = usePathname();
   const colors = useColors();
-  const scheme = useColorScheme();
-  const isDark = scheme === 'dark';
   const { user, logout, isAuthenticated, userId } = useAuth();
   const { isOrganizer, isAdmin, role } = useRole();
   const [collapsed, setCollapsed] = useState(false);
@@ -176,11 +174,11 @@ export function WebSidebar() {
           {navWithBadge.map((item) => (
             <Pressable
               key={item.route}
-              style={[styles.collapsedItem, isActive(item) && { backgroundColor: isDark ? 'rgba(44,42,114,0.2)' : 'rgba(44,42,114,0.08)' }]}
+              style={[styles.collapsedItem, isActive(item) && { backgroundColor: 'rgba(44,42,114,0.08)' }]}
               onPress={() => navigate(item.route)}
               accessibilityLabel={item.label}
             >
-              <Ionicons name={isActive(item) ? item.iconActive : item.icon} size={20} color={isActive(item) ? colors.primary : (isDark ? 'rgba(232,244,255,0.56)' : 'rgba(0,22,40,0.56)')} />
+              <Ionicons name={isActive(item) ? item.iconActive : item.icon} size={20} color={isActive(item) ? colors.primary : ('rgba(0,22,40,0.56)')} />
               {(item.badge ?? 0) > 0 && <View style={styles.badgeDot}><Text style={styles.badgeDotText}>{item.badge}</Text></View>}
             </Pressable>
           ))}
@@ -188,7 +186,7 @@ export function WebSidebar() {
         {/* Expand button */}
         <View style={{ flex: 1 }} />
         <Pressable style={styles.collapsedItem} onPress={() => setCollapsed(false)}>
-          <Ionicons name="chevron-forward-outline" size={20} color={isDark ? 'rgba(232,244,255,0.45)' : 'rgba(0,22,40,0.45)'} />
+          <Ionicons name="chevron-forward-outline" size={20} color={'rgba(0,22,40,0.45)'} />
         </Pressable>
         {/* Avatar */}
         {isAuthenticated && (
@@ -218,10 +216,10 @@ export function WebSidebar() {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.logoText, { color: '#000' }]}>CulturePass</Text>
-          <Text style={[styles.logoUrl, { color: isDark ? 'rgba(232,244,255,0.35)' : 'rgba(0,22,40,0.35)' }]}>culturepass.app</Text>
+          <Text style={[styles.logoUrl, { color: 'rgba(0,22,40,0.35)' }]}>culturepass.app</Text>
         </View>
         <Pressable onPress={() => setCollapsed(true)} hitSlop={8}>
-          <Ionicons name="chevron-back-outline" size={18} color={isDark ? 'rgba(232,244,255,0.4)' : 'rgba(0,22,40,0.4)'} />
+          <Ionicons name="chevron-back-outline" size={18} color={'rgba(0,22,40,0.4)'} />
         </Pressable>
       </View>
 
@@ -230,25 +228,25 @@ export function WebSidebar() {
       {/* Main nav */}
       <SectionGroup>
         {navWithBadge.map((item) => (
-          <SidebarItem key={item.route} item={item} active={isActive(item)} isDark={isDark} onPress={() => navigate(item.route)} />
+          <SidebarItem key={item.route} item={item} active={isActive(item)} onPress={() => navigate(item.route)} />
         ))}
       </SectionGroup>
 
       {/* Explore nav */}
-      <SectionLabel label="Explore" isDark={isDark} />
+      <SectionLabel label="Explore" />
       <SectionGroup>
         {EXPLORE_NAV.map((item) => (
-          <SidebarItem key={item.route} item={item} active={isActive(item)} isDark={isDark} onPress={() => navigate(item.route)} />
+          <SidebarItem key={item.route} item={item} active={isActive(item)} onPress={() => navigate(item.route)} />
         ))}
       </SectionGroup>
 
       {/* Organizer nav */}
       {isOrganizer && (
         <>
-          <SectionLabel label="Organizer" isDark={isDark} />
+          <SectionLabel label="Organizer" />
           <SectionGroup>
             {ORGANIZER_NAV.map((item) => (
-              <SidebarItem key={item.route} item={item} active={isActive(item)} isDark={isDark} onPress={() => navigate(item.route)} />
+              <SidebarItem key={item.route} item={item} active={isActive(item)} onPress={() => navigate(item.route)} />
             ))}
           </SectionGroup>
         </>
@@ -257,10 +255,10 @@ export function WebSidebar() {
       {/* Admin nav */}
       {isAdmin && (
         <>
-          <SectionLabel label="Admin" isDark={isDark} />
+          <SectionLabel label="Admin" />
           <SectionGroup>
             {ADMIN_NAV.map((item) => (
-              <SidebarItem key={item.route} item={item} active={isActive(item)} isDark={isDark} onPress={() => navigate(item.route)} />
+              <SidebarItem key={item.route} item={item} active={isActive(item)} onPress={() => navigate(item.route)} />
             ))}
           </SectionGroup>
         </>
@@ -314,7 +312,7 @@ export function WebSidebar() {
             )
           }
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={[styles.userName, { color: isDark ? '#E8F4FF' : '#001628' }]} numberOfLines={1}>{displayName}</Text>
+            <Text style={[styles.userName, { color: '#001628' }]} numberOfLines={1}>{displayName}</Text>
             {roleLabel && (
               <View style={styles.roleBadge}>
                 <Text style={styles.roleBadgeText}>{roleLabel}</Text>
@@ -322,7 +320,7 @@ export function WebSidebar() {
             )}
           </View>
           <Pressable onPress={() => logout()} hitSlop={8} accessibilityLabel="Sign out">
-            <Ionicons name="log-out-outline" size={20} color={isDark ? 'rgba(232,244,255,0.45)' : 'rgba(0,22,40,0.45)'} />
+            <Ionicons name="log-out-outline" size={20} color={'rgba(0,22,40,0.45)'} />
           </Pressable>
         </View>
       ) : (
@@ -345,18 +343,17 @@ function SectionGroup({ children }: { children: React.ReactNode }) {
   return <View style={styles.navGroup}>{children}</View>;
 }
 
-function SectionLabel({ label, isDark }: { label: string; isDark: boolean }) {
+function SectionLabel({ label }: { label: string }) {
   return (
     <View style={styles.sectionLabel}>
-      <Text style={[styles.sectionLabelText, { color: isDark ? 'rgba(232,244,255,0.35)' : 'rgba(0,22,40,0.35)' }]}>{label}</Text>
+      <Text style={[styles.sectionLabelText, { color: 'rgba(0,22,40,0.35)' }]}>{label}</Text>
     </View>
   );
 }
 
-function SidebarItem({ item, active, isDark, onPress }: {
+function SidebarItem({ item, active, onPress }: {
   item: NavItem;
   active: boolean;
-  isDark: boolean;
   onPress: () => void;
 }) {
   const isCommunity = item.label === 'Community';

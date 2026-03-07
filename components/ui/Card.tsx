@@ -19,7 +19,6 @@ import {
 import * as Haptics from 'expo-haptics';
 import { shadows, glass, CardTokens } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
-import { useColorScheme } from 'react-native';
 
 interface CardProps {
   onPress?: () => void;
@@ -47,10 +46,8 @@ export function Card({
   children,
 }: CardProps) {
   const colors = useColors();
-  const scheme = useColorScheme();
-  const isDark = scheme === 'dark';
 
-  const glassPreset = isDark ? glass.dark : glass.light;
+  const glassPreset = glass.light;
   const glassStyle: { backgroundColor: string; borderColor?: string } = isGlass
     ? glassPreset
     : { backgroundColor: colors.card };

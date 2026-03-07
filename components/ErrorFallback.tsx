@@ -7,7 +7,6 @@ import {
   ScrollView,
   Text,
   Modal,
-  useColorScheme,
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,15 +18,13 @@ export type ErrorFallbackProps = {
 };
 
 export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
 
   const theme = {
-    background: isDark ? "#000000" : "#FFFFFF",
-    backgroundSecondary: isDark ? "#1C1C1E" : "#F2F2F7",
-    text: isDark ? "#FFFFFF" : "#000000",
-    textSecondary: isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.7)",
+    background: "#FFFFFF",
+    backgroundSecondary: "#F2F2F7",
+    text: "#000000",
+    textSecondary: "rgba(0, 0, 0, 0.7)",
     link: "#007AFF",
     buttonText: "#FFFFFF",
   };
@@ -121,9 +118,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
                 style={[
                   styles.modalHeader,
                   {
-                    borderBottomColor: isDark
-                      ? "rgba(255, 255, 255, 0.1)"
-                      : "rgba(0, 0, 0, 0.1)",
+                    borderBottomColor: "rgba(0, 0, 0, 0.1)",
                   },
                 ]}
               >

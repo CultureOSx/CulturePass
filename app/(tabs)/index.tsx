@@ -8,7 +8,6 @@ import {
   RefreshControl,
   ActivityIndicator,
   TextInput,
-  useColorScheme,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import Head from 'expo-router/head';
@@ -155,8 +154,6 @@ export default function HomeScreen() {
   const colors   = useColors();
   const s        = getStyles(colors);
   const { width, isDesktop, isTablet } = useLayout();
-  const scheme   = useColorScheme();
-  const isDark   = scheme === 'dark';
   const { state } = useOnboarding();
   const { isAuthenticated, userId: authUserId, user: authUser } = useAuth();
   const pathname = usePathname();
@@ -548,7 +545,7 @@ export default function HomeScreen() {
           {/* iOS scroll-reactive blur */}
           {Platform.OS === 'ios' && (
             <Animated.View style={[StyleSheet.absoluteFill, headerBlurStyle]} pointerEvents="none">
-              <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+              <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill} />
             </Animated.View>
           )}
           {/* Scroll-reactive hairline border */}

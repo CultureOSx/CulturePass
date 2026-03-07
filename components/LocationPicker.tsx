@@ -7,7 +7,6 @@ import {
   Modal,
   ScrollView,
   Platform,
-  useColorScheme,
   ActivityIndicator,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
@@ -22,8 +21,6 @@ import { useNearestCity } from '@/hooks/useNearestCity';
 export function LocationPicker() {
   const { state, updateLocation } = useOnboarding();
   const colors = useColors();
-  const scheme = useColorScheme();
-  const isDark = scheme === 'dark';
   const { states, citiesByState, getStateForCity, isLoading: locationsLoading, error: locationsError } = useLocations();
   const { detect, status: detectStatus } = useNearestCity();
   const isDetecting = detectStatus === 'requesting';
@@ -106,7 +103,7 @@ export function LocationPicker() {
           {Platform.OS === 'ios' && (
             <BlurView
               intensity={60}
-              tint={isDark ? 'dark' : 'light'}
+              tint="light"
               style={StyleSheet.absoluteFill}
             />
           )}
