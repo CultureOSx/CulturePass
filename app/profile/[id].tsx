@@ -9,15 +9,15 @@ import type { Profile, Review, EventData } from '@/shared/schema';
 import { api } from '@/lib/api';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
-import { ProfileHero } from './components/ProfileHero';
-import { ProfileStats } from './components/ProfileStats';
-import { ProfileSocials } from './components/ProfileSocials';
-import { ProfileContact } from './components/ProfileContact';
-import { ProfileTags } from './components/ProfileTags';
-import { ProfileEvents } from './components/ProfileEvents';
-import { ProfileMap } from './components/ProfileMap';
-import { ProfileReviews } from './components/ProfileReviews';
-import { ProfileBottomBar } from './components/ProfileBottomBar';
+import { ProfileHero } from './components/_ProfileHero';
+import { ProfileStats } from './components/_ProfileStats';
+import { ProfileSocials } from './components/_ProfileSocials';
+import { ProfileContact } from './components/_ProfileContact';
+import { ProfileTags } from './components/_ProfileTags';
+import { ProfileEvents } from './components/_ProfileEvents';
+import { ProfileMap } from './components/_ProfileMap';
+import { ProfileReviews } from './components/_ProfileReviews';
+import { ProfileBottomBar } from './components/_ProfileBottomBar';
 
 const ENTITY_COLORS: Record<string, string> = {
   community: '#E85D3A',

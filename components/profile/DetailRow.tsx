@@ -1,8 +1,8 @@
 import { memo } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { styles } from '../../app/profile/styles';
-import { CP } from '../../app/profile/constants';
+import { styles } from '../../app/profile/_styles';
+import { CP } from '../../app/profile/_constants';
 
 export const DetailRow = memo(({
   icon, iconBg, iconColor, label, value, valueColor, onPress, showArrow,

@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { View, Text } from 'react-native';
-import { styles } from '../styles';
-import { formatNumber } from '../constants';
+import { styles } from '../_styles';
+import { formatNumber } from '../_constants';
 
 export const StatItem = memo(({ value, label }: { value: number; label: string }) => (
   <View style={styles.statItem}>

@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, useWindowDimensions, NativeModules } from 'react-native';
 import { router } from 'expo-router';
 import Head from 'expo-router/head';
 import { Ionicons } from '@expo/vector-icons';
@@ -47,6 +47,11 @@ export default function SignUpScreen() {
         const provider = new GoogleAuthProvider();
         await signInWithPopup(firebaseAuth, provider);
       } else {
+        if (!NativeModules.RNGoogleSignin) {
+          setError('Google Sign-In requires a development build. Use email/password instead.');
+          setLoading(false);
+          return;
+        }
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { GoogleSignin } = require('@react-native-google-signin/google-signin') as typeof import('@react-native-google-signin/google-signin');
         GoogleSignin.configure({ webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID });

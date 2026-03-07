@@ -25,15 +25,15 @@ import {
   TIER_CONFIG,
   formatMemberDate,
   getInitials,
-} from './constants';
-import { styles } from './styles';
+} from './_constants';
+import { styles } from './_styles';
 
 import { BrandDots } from '../../components/profile/BrandDots';
-import { StatItem } from './components/StatItem';
-import { SectionHeader } from './components/SectionHeader';
-import { SocialCard } from './components/SocialCard';
+import { StatItem } from './components/_StatItem';
+import { SectionHeader } from './components/_SectionHeader';
+import { SocialCard } from './components/_SocialCard';
 import { DetailRow } from '../../components/profile/DetailRow';
-import { LoadingSkeleton } from './components/LoadingSkeleton';
+import { LoadingSkeleton } from './components/_LoadingSkeleton';
 
 export default function PublicProfileScreen() {
   const colors = useColors();

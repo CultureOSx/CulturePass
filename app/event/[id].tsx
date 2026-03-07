@@ -28,7 +28,7 @@ import { confirmAndReport } from "@/lib/reporting";
 import { api } from "@/lib/api";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAuth } from "@/lib/auth";
-import { getStyles, getModalStyles } from "./styles/EventDetailStyles";
+import { getStyles, getModalStyles } from "./styles/_EventDetailStyles";
 import { useColors } from '@/hooks/useColors';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { calculateDistance, getPostcodesByPlace } from '@/shared/location/australian-postcodes';

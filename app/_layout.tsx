@@ -174,7 +174,6 @@ function RootLayoutNav() {
       <Stack.Screen name="tickets/index" />
       <Stack.Screen name="tickets/[id]" />
       <Stack.Screen name="tickets/print/[id]" />
-      <Stack.Screen name="perks/index" />
       <Stack.Screen name="perks/[id]" />
       <Stack.Screen name="notifications/index" />
 
