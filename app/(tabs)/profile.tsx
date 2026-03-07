@@ -22,7 +22,7 @@ import * as Haptics from 'expo-haptics';
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { queryClient, getQueryFn } from '@/lib/query-client';
-import { api, type RewardsSummary } from '@/lib/api';
+import { api, type RewardsSummary, type WalletTransaction } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useRole } from '@/hooks/useRole';
 import { useColors } from '@/hooks/useColors';
@@ -121,6 +121,13 @@ export default function ProfileScreen() {
     queryKey: [`/api/notifications/${userId}/unread-count`],
     queryFn: getQueryFn({ on401: 'returnNull' }),
     enabled: !!userId,
+  });
+
+  const { data: recentTransactions } = useQuery<WalletTransaction[]>({
+    queryKey: ['transactions', userId],
+    queryFn: () => api.wallet.transactions(userId!),
+    enabled: !!userId,
+    staleTime: 60_000,
   });
 
   const { data: allEventsData = [] } = useQuery<EventData[]>({
@@ -557,11 +564,40 @@ export default function ProfileScreen() {
             {membership?.validUntil && (
                 <Text style={{ color: colors.textSecondary, fontSize: 13 }}>Membership expires: {formatDate(membership.validUntil)}</Text>
             )}
-            <View style={{ marginTop: 10 }}>
-              <Text style={{ color: colors.text, fontWeight: '600', fontSize: 15, marginBottom: 4 }}>Recent Tickets & Wallet</Text>
-              {/* Placeholder for recent tickets/wallet transactions */}
-              <Text style={{ color: colors.textSecondary, fontSize: 13 }}>No recent transactions found.</Text>
-            </View>
+            {recentTransactions && recentTransactions.length > 0 && (
+              <View style={{ marginTop: 10 }}>
+                <Text style={{ color: colors.text, fontWeight: '600', fontSize: 15, marginBottom: 8 }}>Recent Activity</Text>
+                <View style={{ backgroundColor: colors.surface, borderRadius: 12, overflow: 'hidden' }}>
+                  {recentTransactions.slice(0, 5).map((tx, i) => {
+                    const isCredit = tx.type === 'cashback' || tx.type === 'refund' || tx.type === 'topup';
+                    const amountStr = `${isCredit ? '+' : '-'}$${(Math.abs(tx.amountCents) / 100).toFixed(2)}`;
+                    const iconName: React.ComponentProps<typeof Ionicons>['name'] =
+                      tx.type === 'topup' ? 'add-circle-outline' :
+                      tx.type === 'cashback' ? 'gift-outline' :
+                      tx.type === 'refund' ? 'return-down-back-outline' :
+                      'card-outline';
+                    return (
+                      <View key={tx.id} style={{
+                        flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12,
+                        borderBottomWidth: i < Math.min(recentTransactions.length, 5) - 1 ? StyleSheet.hairlineWidth : 0,
+                        borderBottomColor: colors.border,
+                      }}>
+                        <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: isCredit ? colors.success + '22' : colors.error + '22', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+                          <Ionicons name={iconName} size={16} color={isCredit ? colors.success : colors.error} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: colors.text, fontSize: 13, fontWeight: '500' }} numberOfLines={1}>{tx.description}</Text>
+                          <Text style={{ color: colors.textSecondary, fontSize: 11, marginTop: 1 }}>
+                            {new Date(tx.createdAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+                          </Text>
+                        </View>
+                        <Text style={{ color: isCredit ? colors.success : colors.error, fontWeight: '600', fontSize: 13 }}>{amountStr}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
           </View>
 
           {/* ── Admin Tools ── */}

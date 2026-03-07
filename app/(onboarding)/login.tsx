@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import Head from 'expo-router/head';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, gradients } from '@/constants/theme';
+import { gradients } from '@/constants/theme';
 import { useState } from 'react';
 import * as Haptics from 'expo-haptics';
 import { auth as firebaseAuth } from '@/lib/firebase';
@@ -172,210 +172,215 @@ export default function LoginScreen() {
     }
   };
 
-  const formContent = (
-    <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContent}>
-      <View style={{ backgroundColor: '#FFFFFF', borderRadius: 24, padding: 32, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 16, elevation: 4, alignItems: 'center', width: 400, alignSelf: 'center', marginTop: 60 }}>
-        <View style={styles.logoRow}>
-          <View style={[styles.logoCircle, { backgroundColor: colors.textInverse + '33' }]}><Ionicons name="globe-outline" size={34} color={Colors.primary} /></View>
-          <Text style={[styles.brandLabel, { color: colors.textInverse + '99' }]}>culturepass.app</Text>
+  // ── Shared form fields (used in both mobile & desktop) ──────────────────
+  const formFields = (
+    <>
+      {error ? (
+        <View style={[styles.errorBox, { backgroundColor: colors.error + '18', borderColor: colors.error + '40' }]}>
+          <Ionicons name="alert-circle-outline" size={16} color={colors.error} />
+          <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
         </View>
+      ) : null}
 
-        <Text style={[styles.title, { color: colors.primary, fontSize: 28, fontWeight: '700', marginBottom: 6 }]}>Welcome back</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary, fontSize: 15 }]}>Sign in to continue your cultural journey.</Text>
+      <View style={styles.form}>
+        <Input
+          label="Email Address"
+          placeholder="your@email.com"
+          leftIcon="mail-outline"
+          value={email}
+          onChangeText={(v) => { setEmail(v); if (error) setError(''); }}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          autoComplete="email"
+          textContentType="emailAddress"
+          returnKeyType="next"
+        />
 
-        {error && <Text style={[styles.errorText, { color: colors.error, fontWeight: '600', fontSize: 15, marginBottom: 8 }]}>{error}</Text>}
-
-        <View style={styles.form}>
-          <Input
-            label="Email Address"
-            placeholder="Enter your email address"
-            leftIcon="mail-outline"
-            value={email}
-            onChangeText={(value) => {
-              setEmail(value);
-              if (error) setError('');
-            }}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-
-          <View>
-            <View style={styles.passwordHeader}>
-              <Text style={[styles.label, { color: colors.textInverse }]}>Password</Text>
-              <Pressable
-                onPress={() => router.push('/(onboarding)/forgot-password')}
-                accessibilityRole="link"
-                accessibilityLabel="Forgot password"
-              >
-                <Text style={[styles.forgotText, { color: colors.warning }]}>Forgot Password?</Text>
-              </Pressable>
-            </View>
-            <Input
-              placeholder="Enter your password"
-              leftIcon="lock-closed-outline"
-              value={password}
-              onChangeText={(value) => {
-                setPassword(value);
-                if (error) setError('');
-              }}
-              secureTextEntry
-              passwordToggle
-            />
+        <View>
+          <View style={styles.passwordHeader}>
+            <Text style={[styles.label, { color: isDesktop ? colors.text : colors.textInverse }]}>Password</Text>
+            <Pressable
+              onPress={() => router.push('/(onboarding)/forgot-password')}
+              accessibilityRole="link"
+              accessibilityLabel="Forgot password"
+              hitSlop={8}
+            >
+              <Text style={[styles.forgotText, { color: isDesktop ? colors.primary : colors.warning }]}>Forgot Password?</Text>
+            </Pressable>
           </View>
+          <Input
+            placeholder="••••••••"
+            leftIcon="lock-closed-outline"
+            value={password}
+            onChangeText={(v) => { setPassword(v); if (error) setError(''); }}
+            secureTextEntry
+            passwordToggle
+            autoComplete="current-password"
+            textContentType="password"
+            returnKeyType="done"
+            onSubmitEditing={handleLogin}
+          />
         </View>
-
-        <Button
-          variant="primary"
-          size="lg"
-          fullWidth
-          rightIcon="arrow-forward"
-          loading={loading}
-          disabled={!isValid || loading}
-          onPress={handleLogin}
-          style={[styles.submitBtn, { marginTop: 10, borderRadius: 12 }]}
-          accessibilityLabel="Sign in to your CulturePass account"
-        >
-          Sign In
-        </Button>
-
-        <View style={styles.socialDivider}>
-          <View style={[styles.divLine, { backgroundColor: colors.textInverse + '59' }]} />
-          <Text style={[styles.divText, { color: colors.textInverse + 'D9' }]}>or</Text>
-          <View style={[styles.divLine, { backgroundColor: colors.textInverse + '59' }]} />
-        </View>
-
-        <View style={styles.socialRow}>
-          <SocialButton provider="google" onPress={handleGoogleSignIn} disabled={loading} />
-          {Platform.OS === 'ios'
-            ? <SocialButton provider="apple" onPress={handleAppleSignIn} disabled={loading} />
-            : <SocialButton provider="apple" comingSoon disabled={loading} />
-          }
-        </View>
-
-        <Pressable
-          style={styles.switchRow}
-          onPress={() => router.replace('/(onboarding)/signup')}
-          accessibilityRole="link"
-          accessibilityLabel="Don't have an account? Sign up"
-        >
-          <Text style={[styles.switchText, { color: colors.textInverse + 'D9' }]}>Don&apos;t have an account? <Text style={[styles.switchLink, { color: colors.warning }]}>Sign Up</Text></Text>
-        </Pressable>
       </View>
-    </ScrollView>
+
+      <Button
+        variant="primary"
+        size="lg"
+        fullWidth
+        rightIcon="arrow-forward"
+        loading={loading}
+        disabled={!isValid || loading}
+        onPress={handleLogin}
+        style={styles.submitBtn}
+        accessibilityLabel="Sign in to your CulturePass account"
+      >
+        Sign In
+      </Button>
+
+      <View style={styles.socialDivider}>
+        <View style={[styles.divLine, { backgroundColor: isDesktop ? colors.border : colors.textInverse + '50' }]} />
+        <Text style={[styles.divText, { color: isDesktop ? colors.textSecondary : colors.textInverse + 'CC' }]}>or continue with</Text>
+        <View style={[styles.divLine, { backgroundColor: isDesktop ? colors.border : colors.textInverse + '50' }]} />
+      </View>
+
+      <View style={styles.socialRow}>
+        <SocialButton provider="google" onPress={handleGoogleSignIn} disabled={loading} />
+        {Platform.OS === 'ios'
+          ? <SocialButton provider="apple" onPress={handleAppleSignIn} disabled={loading} />
+          : <SocialButton provider="apple" comingSoon disabled={loading} />
+        }
+      </View>
+
+      <Pressable
+        style={styles.switchRow}
+        onPress={() => router.replace('/(onboarding)/signup')}
+        accessibilityRole="link"
+        accessibilityLabel="Don't have an account? Sign up"
+      >
+        <Text style={[styles.switchText, { color: isDesktop ? colors.textSecondary : colors.textInverse + 'CC' }]}>
+          Don&apos;t have an account?{' '}
+          <Text style={[styles.switchLink, { color: isDesktop ? colors.primary : colors.warning }]}>Sign Up</Text>
+        </Text>
+      </Pressable>
+    </>
   );
 
-  // Desktop web: centred card on full-screen gradient
+  // ── Desktop: centred card on gradient ────────────────────────────────────
   if (isDesktop) {
     return (
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
         <View style={[styles.container, styles.desktopWrapper]}>
           <Head><title>Sign In — CulturePass</title></Head>
-          <LinearGradient
-            colors={gradients.culturepassBrand}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0.95 }}
-            style={StyleSheet.absoluteFillObject}
-          />
-          {/* Back to landing */}
+          <LinearGradient colors={gradients.culturepassBrand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0.95 }} style={StyleSheet.absoluteFillObject} />
           <View style={styles.desktopBackRow}>
             <Pressable onPress={() => router.replace('/(tabs)')} hitSlop={8} style={[styles.desktopBackBtn, { backgroundColor: colors.textInverse + '26' }]}>
               <Ionicons name="chevron-back" size={18} color={colors.textInverse} />
               <Text style={[styles.desktopBackText, { color: colors.textInverse }]}>Back to Discover</Text>
             </Pressable>
           </View>
-          <View style={[styles.desktopCard, { backgroundColor: colors.background + 'D9', borderColor: colors.textInverse + '26' }, Platform.OS === 'web' ? ({ boxShadow: `0 24px 64px ${colors.background + '73'}` } as object) : null]}>
-            {formContent}
+          <View style={[styles.desktopCard, { backgroundColor: colors.surface, borderColor: colors.border }, Platform.OS === 'web' ? ({ boxShadow: '0 24px 64px rgba(0,0,0,0.18)' } as object) : null]}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.desktopScroll}>
+              <View style={[styles.logoRow]}>
+                <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.logoCircle}>
+                  <Ionicons name="globe-outline" size={30} color="#fff" />
+                </LinearGradient>
+                <Text style={[styles.brandLabel, { color: colors.textTertiary }]}>CulturePass</Text>
+              </View>
+              <Text style={[styles.title, { color: colors.text }]}>Welcome back</Text>
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Sign in to continue your cultural journey.</Text>
+              {formFields}
+            </ScrollView>
           </View>
         </View>
       </KeyboardAvoidingView>
     );
   }
 
+  // ── Mobile / tablet: full-screen gradient form ───────────────────────────
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
-      <View style={[styles.container, { paddingTop: topInset }]}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <View style={styles.container}>
         <Head><title>Sign In — CulturePass</title></Head>
-        <LinearGradient
-          colors={gradients.culturepassBrand}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0.95 }}
-          style={StyleSheet.absoluteFillObject}
-        />
-        <View style={styles.header}>
+        <LinearGradient colors={gradients.culturepassBrand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0.95 }} style={StyleSheet.absoluteFillObject} />
+
+        {/* Top nav bar */}
+        <View style={[styles.mobileNav, { paddingTop: topInset + 8 }]}>
           <Pressable
             onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')}
-            hitSlop={8}
+            hitSlop={12}
+            style={[styles.mobileNavBtn, { backgroundColor: colors.textInverse + '25' }]}
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <Ionicons name="chevron-back" size={24} color={colors.textInverse} />
+            <Ionicons name="chevron-back" size={22} color={colors.textInverse} />
           </Pressable>
         </View>
-        {formContent}
+
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.mobileScroll}
+        >
+          {/* Logo + heading */}
+          <View style={styles.mobileHero}>
+            <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.mobileLogoCircle}>
+              <Ionicons name="globe-outline" size={32} color="#fff" />
+            </LinearGradient>
+            <Text style={[styles.mobileTitle, { color: colors.textInverse }]}>Welcome back</Text>
+            <Text style={[styles.mobileSubtitle, { color: colors.textInverse + 'CC' }]}>Sign in to continue your cultural journey</Text>
+          </View>
+
+          {/* Form card (frosted glass) */}
+          <View style={[styles.mobileCard, { backgroundColor: colors.textInverse + '14', borderColor: colors.textInverse + '30' }]}>
+            {formFields}
+          </View>
+        </ScrollView>
       </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'transparent' },
-  header: { paddingHorizontal: 20, paddingVertical: 12 },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
-  formCard: {
-    borderRadius: 22,
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  formCardDesktop: {
-    borderRadius: 0,
-    borderWidth: 0,
-    backgroundColor: 'transparent',
-    paddingHorizontal: 0,
-    paddingBottom: 0,
-  },
-  desktopWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  desktopBackRow: {
-    position: 'absolute',
-    top: 20,
-    left: 32,
-    zIndex: 10,
-  },
-  desktopBackBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
+  container: { flex: 1 },
+
+  // ── Mobile ──
+  mobileNav:    { flexDirection: 'row', paddingHorizontal: 16, paddingBottom: 4 },
+  mobileNavBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  mobileScroll: { paddingHorizontal: 20, paddingBottom: 48 },
+  mobileHero:   { alignItems: 'center', paddingTop: 16, paddingBottom: 28 },
+  mobileLogoCircle: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  mobileTitle:   { fontSize: 30, fontFamily: 'Poppins_700Bold', color: '#fff', textAlign: 'center', letterSpacing: -0.5, marginBottom: 8 },
+  mobileSubtitle:{ fontSize: 15, fontFamily: 'Poppins_400Regular', textAlign: 'center', lineHeight: 22 },
+  mobileCard:   { borderRadius: 24, borderWidth: 1, paddingHorizontal: 20, paddingVertical: 24 },
+
+  // ── Desktop ──
+  desktopWrapper:  { alignItems: 'center', justifyContent: 'center', flex: 1 },
+  desktopBackRow:  { position: 'absolute', top: 20, left: 32, zIndex: 10 },
+  desktopBackBtn:  { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
   desktopBackText: { fontSize: 14, fontFamily: 'Poppins_500Medium' },
-  desktopCard: {
-    width: 480,
-    maxHeight: '90%' as unknown as number,
-    borderRadius: 24,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  logoRow: { alignItems: 'center', marginTop: 12, marginBottom: 28, gap: 0 },
-  logoCircle: { width: 68, height: 68, borderRadius: 34, alignItems: 'center', justifyContent: 'center' },
-  brandLabel: { fontSize: 13, fontFamily: 'Poppins_600SemiBold', letterSpacing: 1.5, marginTop: 10 },
-  title: { fontSize: 34, fontFamily: 'Poppins_700Bold', textAlign: 'center', marginBottom: 8, letterSpacing: 0.37 },
-  subtitle: { fontSize: 15, fontFamily: 'Poppins_400Regular', lineHeight: 22, textAlign: 'center', marginBottom: 32 },
-  errorText: { fontSize: 14, fontFamily: 'Poppins_500Medium', color: Colors.error, textAlign: 'center', marginBottom: 16, backgroundColor: Colors.error + '15', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 12 },
-  form: { gap: 20, marginBottom: 20 },
-  passwordHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  label: { fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
-  forgotText: { fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
-  submitBtn: { marginBottom: 28 },
-  socialDivider: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
-  divLine: { flex: 1, height: StyleSheet.hairlineWidth },
-  divText: { fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  socialRow: { flexDirection: 'row', gap: 12, marginBottom: 28 },
-  switchRow: { alignItems: 'center' },
-  switchText: { fontSize: 14, fontFamily: 'Poppins_400Regular' },
-  switchLink: { fontFamily: 'Poppins_600SemiBold' },
+  desktopCard:     { width: 460, maxHeight: '92%' as unknown as number, borderRadius: 24, borderWidth: 1, overflow: 'hidden' },
+  desktopScroll:   { paddingHorizontal: 32, paddingBottom: 32, paddingTop: 8 },
+
+  // ── Shared branding ──
+  logoRow:    { alignItems: 'center', marginBottom: 20, marginTop: 12, gap: 0 },
+  logoCircle: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' },
+  brandLabel: { fontSize: 13, fontFamily: 'Poppins_600SemiBold', letterSpacing: 1.2, marginTop: 10 },
+  title:      { fontSize: 28, fontFamily: 'Poppins_700Bold', textAlign: 'center', marginBottom: 6, letterSpacing: -0.3 },
+  subtitle:   { fontSize: 15, fontFamily: 'Poppins_400Regular', lineHeight: 22, textAlign: 'center', marginBottom: 28 },
+
+  // ── Shared form ──
+  errorBox:  { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 12, borderWidth: 1, paddingVertical: 10, paddingHorizontal: 14, marginBottom: 16 },
+  errorText: { fontSize: 14, fontFamily: 'Poppins_500Medium', flex: 1 },
+  form:          { gap: 18, marginBottom: 24 },
+  passwordHeader:{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  label:         { fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
+  forgotText:    { fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  submitBtn:     { marginBottom: 24 },
+  socialDivider: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 18 },
+  divLine:       { flex: 1, height: StyleSheet.hairlineWidth },
+  divText:       { fontSize: 12, fontFamily: 'Poppins_500Medium' },
+  socialRow:     { flexDirection: 'row', gap: 12, marginBottom: 24 },
+  switchRow:     { alignItems: 'center', paddingVertical: 4 },
+  switchText:    { fontSize: 14, fontFamily: 'Poppins_400Regular', textAlign: 'center' },
+  switchLink:    { fontFamily: 'Poppins_700Bold' },
 });
